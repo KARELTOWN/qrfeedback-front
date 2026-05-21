@@ -2,9 +2,9 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { Mail, QrCode, ShieldCheck } from 'lucide-vue-next';
-import { useAuth, type SignupInput } from '../composables/useAuth';
-import { otpSchema, signupSchema, validateForm, type FormErrors } from '../validators/auth.validator';
-import PasswordField from '../components/PasswordField.vue';
+import { useAuth, type SignupInput } from '../../composables/useAuth';
+import { otpSchema, signupSchema, validateForm, type FormErrors } from '../../validators/auth.validator';
+import PasswordField from '../../components/PasswordField.vue';
 
 type OtpForm = { code: string };
 

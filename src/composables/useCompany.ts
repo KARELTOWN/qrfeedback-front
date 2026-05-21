@@ -26,6 +26,29 @@ export type PublicProof = {
   }>;
 };
 
+export type FeedbackFieldConfig = {
+  key: 'serviceFeedback';
+  label: string;
+  placeholder?: string;
+  enabled: boolean;
+  required: boolean;
+};
+
+export type CustomQuestionConfig = {
+  id: string;
+  type: 'text' | 'textarea' | 'rating' | 'select' | 'email' | 'phone';
+  label: string;
+  placeholder?: string;
+  required: boolean;
+  options?: string[];
+};
+
+export type FeedbackFormConfig = {
+  title: string;
+  fields: FeedbackFieldConfig[];
+  customQuestions: CustomQuestionConfig[];
+};
+
 export function useCompany() {
   function registerCompany(payload: RegisterCompanyInput) {
     return api<RegisterCompanyResult>('/api/companies/register', {
@@ -35,7 +58,7 @@ export function useCompany() {
   }
 
   function getPublicCompany(slug: string | string[]) {
-    return api<{ name: string; slug: string; feedbackUrl: string }>(`/api/companies/${slug}`);
+    return api<{ name: string; slug: string; feedbackUrl: string; feedbackFormConfig: FeedbackFormConfig }>(`/api/companies/${slug}`);
   }
 
   function getPublicProof() {

@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { ArrowLeft, CreditCard, MessageSquareText, QrCode, ReceiptText } from 'lucide-vue-next';
-import { useAdmin, type AdminUserDetails } from '../composables/useAdmin';
+import { useAdmin, type AdminUserDetails } from '../../composables/useAdmin';
 
 const route = useRoute();
 const router = useRouter();

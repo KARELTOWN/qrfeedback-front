@@ -1,11 +1,15 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Ban, Eye, KeyRound, LayoutDashboard, LogOut, Power, QrCode, ReceiptText, RefreshCcw, ShieldCheck, UserCog, Users } from 'lucide-vue-next';
+import { Ban, Eye, KeyRound, LayoutDashboard, Power, QrCode, ReceiptText, Users } from 'lucide-vue-next';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
-import { clearToken } from '../api';
-import { useAdmin, type AdminStats, type AdminTransaction, type AdminUser, type InactiveUserItem, type PaginationMeta, type QrRequestsWithoutAccount, type TransactionsResponse } from '../composables/useAdmin';
+import { clearToken } from '../../api';
+import { useAdmin, type AdminStats, type AdminUser, type InactiveUserItem, type PaginationMeta, type QrRequestsWithoutAccount, type TransactionsResponse } from '../../composables/useAdmin';
+import AdminPageHeader from '../../components/admin/AdminPageHeader.vue';
+import AdminSidebar from '../../components/admin/AdminSidebar.vue';
+import TransactionTable from '../../components/admin/AdminTransactionTable.vue';
+import BasePagination from '../../components/shared/BasePagination.vue';
 
 type AdminTab = 'dashboard' | 'users' | 'qr-requests' | 'transactions' | 'inactive';
 
@@ -51,21 +55,6 @@ const qrTotalPages = computed(() => qrRequests.value.pagination.totalPages);
 const transactionTotalPages = computed(() => transactions.value.pagination.totalPages);
 const inactiveTotalPages = computed(() => inactivePagination.value.totalPages);
 
-function getPageNumbers(totalPages: number, currentPage: number) {
-  const pages = new Set<number>([1, totalPages, currentPage, currentPage - 1, currentPage + 1]);
-  if (currentPage <= 3) {
-    pages.add(2);
-    pages.add(3);
-  }
-  if (currentPage >= totalPages - 2) {
-    pages.add(totalPages - 1);
-    pages.add(totalPages - 2);
-  }
-  return Array.from(pages)
-    .filter((page) => page >= 1 && page <= totalPages)
-    .sort((a, b) => a - b);
-}
-
 async function goQrPage(page: number) {
   qrPage.value = Math.min(Math.max(page, 1), qrTotalPages.value);
   await loadQrRequests();
@@ -76,34 +65,14 @@ async function goUsersPage(page: number) {
   await loadUsers();
 }
 
-function moveUsersPage(direction: number) {
-  usersPage.value = Math.min(Math.max(usersPage.value + direction, 1), usersTotalPages.value);
-  loadUsers();
-}
-
-function moveQrPage(direction: number) {
-  qrPage.value = Math.min(Math.max(qrPage.value + direction, 1), qrTotalPages.value);
-  loadQrRequests();
-}
-
 async function goTransactionPage(page: number) {
   transactionPage.value = Math.min(Math.max(page, 1), transactionTotalPages.value);
   await loadTransactions();
 }
 
-function moveTransactionPage(direction: number) {
-  transactionPage.value = Math.min(Math.max(transactionPage.value + direction, 1), transactionTotalPages.value);
-  loadTransactions();
-}
-
 async function goInactivePage(page: number) {
   inactivePage.value = Math.min(Math.max(page, 1), inactiveTotalPages.value);
   await loadInactiveUsers();
-}
-
-function moveInactivePage(direction: number) {
-  inactivePage.value = Math.min(Math.max(inactivePage.value + direction, 1), inactiveTotalPages.value);
-  loadInactiveUsers();
 }
 
 function formatMoney(value = 0) {
@@ -272,40 +241,10 @@ onBeforeUnmount(() => {
 
 <template>
   <main class="min-h-screen bg-slate-100 lg:grid lg:grid-cols-[312px_1fr]">
-    <aside class="hidden border-r border-slate-200 bg-white lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-[312px] lg:flex-col">
-      <div class="px-5 py-5">
-        <RouterLink to="/admin" class="flex items-center gap-3 text-2xl font-black text-ink">
-          <span class="grid h-11 w-11 place-items-center rounded-full bg-brand-700 text-white"><QrCode :size="23" /></span>
-          QR Feedback
-        </RouterLink>
-      </div>
-      <div class="mx-5 border-t border-slate-200 pt-7">
-        <div class="flex h-16 items-center gap-3 rounded-xl border border-slate-300 bg-white px-4 font-black text-ink">
-          <span class="grid h-10 w-10 place-items-center rounded-full bg-black text-white"><ShieldCheck :size="20" /></span>
-          Superadmin
-        </div>
-      </div>
-      <nav class="mt-5 flex-1 space-y-2 px-5">
-        <button v-for="item in navItems" :key="item.key" class="flex h-12 w-full items-center gap-3 rounded-xl px-4 text-left text-base font-bold transition" :class="activeTab === item.key ? 'bg-brand-100 text-brand-700' : 'text-slate-700 hover:bg-slate-100'" @click="setTab(item.key)">
-          <component :is="item.icon" :size="22" />
-          {{ item.label }}
-        </button>
-      </nav>
-      <button class="mt-auto flex h-14 items-center gap-3 border-t border-slate-200 px-6 font-bold text-slate-700" @click="logout">
-        <LogOut :size="20" /> Deconnexion
-      </button>
-    </aside>
+    <AdminSidebar :active-tab="activeTab" :nav-items="navItems" @select="setTab($event as AdminTab)" @logout="logout" />
 
     <section class="min-w-0 lg:col-start-2">
-      <header class="m-4 flex items-center justify-between rounded-3xl bg-white px-5 py-5 shadow-sm lg:m-6 lg:px-8">
-        <div>
-          <p class="text-sm font-black uppercase tracking-wide text-brand-700">Administration</p>
-          <h1 class="mt-1 text-3xl font-black text-black">{{ pageTitle }}</h1>
-        </div>
-        <button class="grid h-12 w-12 place-items-center rounded-full bg-slate-100 text-slate-700 disabled:opacity-50" :disabled="loading" @click="load">
-          <RefreshCcw :size="20" />
-        </button>
-      </header>
+      <AdminPageHeader :title="pageTitle" :loading="loading" @refresh="load" />
 
       <div class="m-4 rounded-3xl bg-white p-5 shadow-sm lg:m-6 lg:p-8">
         <p v-if="message" class="mb-5 rounded-xl px-4 py-3 text-sm font-bold" :class="message.includes('Erreur') || message.includes('requis') ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'">{{ message }}</p>
@@ -361,14 +300,7 @@ onBeforeUnmount(() => {
               </tbody>
             </table>
           </div>
-          <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <span class="text-sm font-bold text-slate-500">{{ usersPagination.total }} utilisateur(s) au total</span>
-            <div class="flex flex-wrap gap-2">
-              <button class="h-10 rounded-xl border border-slate-300 px-4 font-black text-ink disabled:opacity-40" :disabled="usersPage <= 1" @click="moveUsersPage(-1)">Precedent</button>
-              <button v-for="page in getPageNumbers(usersTotalPages, usersPage)" :key="`users-${page}`" class="h-10 min-w-10 rounded-xl border px-3 font-black" :class="page === usersPage ? 'border-brand-700 bg-brand-700 text-white' : 'border-slate-300 text-ink'" @click="goUsersPage(page)">{{ page }}</button>
-              <button class="h-10 rounded-xl border border-slate-300 px-4 font-black text-ink disabled:opacity-40" :disabled="usersPage >= usersTotalPages" @click="moveUsersPage(1)">Suivant</button>
-            </div>
-          </div>
+          <BasePagination :pagination="usersPagination" :page="usersPage" label="utilisateur(s) au total" @page-change="goUsersPage" />
         </section>
 
         <section v-if="activeTab === 'qr-requests'">
@@ -406,14 +338,7 @@ onBeforeUnmount(() => {
               </tbody>
             </table>
           </div>
-          <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <span class="text-sm font-bold text-slate-500">{{ qrRequests.pagination.total }} demande(s) trouvee(s)</span>
-            <div class="flex flex-wrap gap-2">
-              <button class="h-10 rounded-xl border border-slate-300 px-4 font-black text-ink disabled:opacity-40" :disabled="qrPage <= 1" @click="moveQrPage(-1)">Precedent</button>
-              <button v-for="page in getPageNumbers(qrTotalPages, qrPage)" :key="`qr-${page}`" class="h-10 min-w-10 rounded-xl border px-3 font-black" :class="page === qrPage ? 'border-brand-700 bg-brand-700 text-white' : 'border-slate-300 text-ink'" @click="goQrPage(page)">{{ page }}</button>
-              <button class="h-10 rounded-xl border border-slate-300 px-4 font-black text-ink disabled:opacity-40" :disabled="qrPage >= qrTotalPages" @click="moveQrPage(1)">Suivant</button>
-            </div>
-          </div>
+          <BasePagination :pagination="qrRequests.pagination" :page="qrPage" label="demande(s) trouvee(s)" @page-change="goQrPage" />
         </section>
 
         <section v-if="activeTab === 'transactions'" class="grid gap-5">
@@ -456,14 +381,7 @@ onBeforeUnmount(() => {
               </tbody>
             </table>
           </div>
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <span class="text-sm font-bold text-slate-500">{{ transactions.pagination.total }} transaction(s) trouvee(s)</span>
-            <div class="flex flex-wrap gap-2">
-              <button class="h-10 rounded-xl border border-slate-300 px-4 font-black text-ink disabled:opacity-40" :disabled="transactionPage <= 1" @click="moveTransactionPage(-1)">Precedent</button>
-              <button v-for="page in getPageNumbers(transactionTotalPages, transactionPage)" :key="`transaction-${page}`" class="h-10 min-w-10 rounded-xl border px-3 font-black" :class="page === transactionPage ? 'border-brand-700 bg-brand-700 text-white' : 'border-slate-300 text-ink'" @click="goTransactionPage(page)">{{ page }}</button>
-              <button class="h-10 rounded-xl border border-slate-300 px-4 font-black text-ink disabled:opacity-40" :disabled="transactionPage >= transactionTotalPages" @click="moveTransactionPage(1)">Suivant</button>
-            </div>
-          </div>
+          <BasePagination :pagination="transactions.pagination" :page="transactionPage" label="transaction(s) trouvee(s)" @page-change="goTransactionPage" />
         </section>
 
         <section v-if="activeTab === 'inactive'">
@@ -480,45 +398,9 @@ onBeforeUnmount(() => {
               </div>
             </article>
           </div>
-          <div class="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <span class="text-sm font-bold text-slate-500">{{ inactivePagination.total }} utilisateur(s) inactif(s)</span>
-            <div class="flex flex-wrap gap-2">
-              <button class="h-10 rounded-xl border border-slate-300 px-4 font-black text-ink disabled:opacity-40" :disabled="inactivePage <= 1" @click="moveInactivePage(-1)">Precedent</button>
-              <button v-for="page in getPageNumbers(inactiveTotalPages, inactivePage)" :key="`inactive-${page}`" class="h-10 min-w-10 rounded-xl border px-3 font-black" :class="page === inactivePage ? 'border-brand-700 bg-brand-700 text-white' : 'border-slate-300 text-ink'" @click="goInactivePage(page)">{{ page }}</button>
-              <button class="h-10 rounded-xl border border-slate-300 px-4 font-black text-ink disabled:opacity-40" :disabled="inactivePage >= inactiveTotalPages" @click="moveInactivePage(1)">Suivant</button>
-            </div>
-          </div>
+          <BasePagination :pagination="inactivePagination" :page="inactivePage" label="utilisateur(s) inactif(s)" @page-change="goInactivePage" />
         </section>
       </div>
     </section>
   </main>
 </template>
-
-<script lang="ts">
-import { defineComponent, type PropType } from 'vue';
-import type { AdminTransaction as TransactionRow } from '../composables/useAdmin';
-
-export default defineComponent({
-  components: {
-    TransactionTable: defineComponent({
-      props: {
-        title: { type: String, required: true },
-        transactions: { type: Array as PropType<TransactionRow[]>, required: true }
-      },
-      setup() {
-        const formatMoney = (value = 0) => new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(value);
-        const formatDate = (value?: string) => value ? new Date(value).toLocaleString('fr-FR') : '-';
-        return { formatMoney, formatDate };
-      },
-      template: `
-        <div class="overflow-x-auto rounded-2xl border border-slate-300">
-          <h2 class="border-b border-slate-200 px-5 py-4 text-xl font-black text-ink">{{ title }}</h2>
-          <table class="min-w-[760px] w-full text-left">
-            <thead class="bg-slate-50"><tr><th class="px-5 py-4 font-black">Entreprise</th><th class="px-5 py-4 font-black">Plan</th><th class="px-5 py-4 font-black">Montant</th><th class="px-5 py-4 font-black">Statut</th><th class="px-5 py-4 font-black">Date</th></tr></thead>
-            <tbody><tr v-for="payment in transactions" :key="payment._id" class="border-t border-slate-200"><td class="px-5 py-4 font-black">{{ payment.company?.name || '-' }}</td><td class="px-5 py-4">{{ payment.planLabel }}</td><td class="px-5 py-4 font-black text-brand-700">{{ formatMoney(payment.amountFcfa) }}</td><td class="px-5 py-4">{{ payment.status }}</td><td class="px-5 py-4">{{ formatDate(payment.paidAt || payment.createdAt) }}</td></tr></tbody>
-          </table>
-        </div>`
-    })
-  }
-});
-</script>

@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { CreditCard, Wallet } from 'lucide-vue-next';
-import { usePayments, type Payment, type Plan } from '../composables/usePayments';
+import { usePayments, type Payment, type Plan } from '../../composables/usePayments';
 
 const route = useRoute();
 const { getPlans, createPayment: createPaymentRequest } = usePayments();

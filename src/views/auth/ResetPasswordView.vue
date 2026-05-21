@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { useAuth } from '../composables/useAuth';
-import { resetPasswordSchema, validateForm, type FormErrors } from '../validators/auth.validator';
-import PasswordField from '../components/PasswordField.vue';
+import { useAuth } from '../../composables/useAuth';
+import { resetPasswordSchema, validateForm, type FormErrors } from '../../validators/auth.validator';
+import PasswordField from '../../components/PasswordField.vue';
 
 type ResetForm = { password: string };
 

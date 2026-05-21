@@ -1,11 +1,8 @@
 import { api } from '../api';
 
 export type ReviewInput = {
-  customerName?: string;
-  customerPhone?: string;
   serviceFeedback?: string;
-  improvementSuggestion?: string;
-  badExperience?: string;
+  customAnswers?: Array<{ questionId: string; value: string | number }>;
   rating: number;
 };
 

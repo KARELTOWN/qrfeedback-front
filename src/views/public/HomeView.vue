@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { ArrowRight, Building2, CheckCircle2, Copy, Download, Mail, MessageCircle, QrCode, Sparkles, X } from 'lucide-vue-next';
-import { useCompany, type PublicProof, type RegisterCompanyResult } from '../composables/useCompany';
-import CountryDialSelect from '../components/CountryDialSelect.vue';
-import { buildInternationalPhone, digitsOnly } from '../constants/countries';
+import { useCompany, type PublicProof, type RegisterCompanyResult } from '../../composables/useCompany';
+import CountryDialSelect from '../../components/CountryDialSelect.vue';
+import { buildInternationalPhone, digitsOnly } from '../../constants/countries';
 
 declare global {
   interface Window {

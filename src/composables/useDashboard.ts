@@ -12,15 +12,17 @@ export type DashboardStats = {
 export type Review = {
   _id: string;
   createdAt: string;
-  customerName?: string;
-  customerPhone?: string;
   rating: number;
   serviceFeedback?: string;
-  improvementSuggestion?: string;
-  badExperience?: string;
   notificationStatus: string;
   notificationError?: string;
   notificationWhatsappNumber?: string;
+  customAnswers?: Array<{
+    questionId: string;
+    label: string;
+    type: string;
+    value: string | number;
+  }>;
   qrCode?: {
     _id: string;
     whatsappNumber: string;
@@ -64,6 +66,29 @@ export type MonthlyEvolution = {
 
 export type RatingDistribution = Array<{ rating: number; count: number }>;
 
+export type FeedbackFieldConfig = {
+  key: 'serviceFeedback';
+  label: string;
+  placeholder?: string;
+  enabled: boolean;
+  required: boolean;
+};
+
+export type CustomQuestionConfig = {
+  id: string;
+  type: 'text' | 'textarea' | 'rating' | 'select' | 'email' | 'phone';
+  label: string;
+  placeholder?: string;
+  required: boolean;
+  options?: string[];
+};
+
+export type FeedbackFormConfig = {
+  title: string;
+  fields: FeedbackFieldConfig[];
+  customQuestions: CustomQuestionConfig[];
+};
+
 export function useDashboard() {
   function getStats() {
     return api<DashboardStats>('/api/dashboard/stats');
@@ -90,6 +115,17 @@ export function useDashboard() {
     return api<RatingDistribution>(`/api/dashboard/rating-distribution${query}`);
   }
 
+  function getFeedbackFormConfig() {
+    return api<FeedbackFormConfig>('/api/dashboard/feedback-form-config');
+  }
+
+  function updateFeedbackFormConfig(payload: FeedbackFormConfig) {
+    return api<FeedbackFormConfig>('/api/dashboard/feedback-form-config', {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    });
+  }
+
   function createQrCode(payload: { whatsappNumber: string; label?: string }) {
     return api<CompanyQrCode>('/api/qrcodes', {
       method: 'POST',
@@ -104,5 +140,5 @@ export function useDashboard() {
     return response.blob();
   }
 
-  return { getStats, getReviews, getQrCodes, getMonthlyEvolution, getRatingDistribution, createQrCode, exportReviewsCsv };
+  return { getStats, getReviews, getQrCodes, getMonthlyEvolution, getRatingDistribution, getFeedbackFormConfig, updateFeedbackFormConfig, createQrCode, exportReviewsCsv };
 }

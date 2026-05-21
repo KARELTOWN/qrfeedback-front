@@ -2,7 +2,7 @@
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { CheckCircle2, Loader2, XCircle } from 'lucide-vue-next';
-import { usePayments } from '../composables/usePayments';
+import { usePayments } from '../../composables/usePayments';
 
 const route = useRoute();
 const router = useRouter();

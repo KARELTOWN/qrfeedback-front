@@ -2,14 +2,14 @@
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { Mail, QrCode, ShieldCheck } from 'lucide-vue-next';
-import { useAuth } from '../composables/useAuth';
-import PasswordField from '../components/PasswordField.vue';
+import { useAuth } from '../../composables/useAuth';
+import PasswordField from '../../components/PasswordField.vue';
 import {
   forgotPasswordConfirmSchema,
   forgotPasswordSchema,
   validateForm,
   type FormErrors
-} from '../validators/auth.validator';
+} from '../../validators/auth.validator';
 
 type ForgotForm = { email: string };
 type ConfirmForm = { code: string; password: string; confirmPassword: string };
