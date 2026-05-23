@@ -15,7 +15,7 @@ import AdminView from './views/admin/AdminView.vue';
 import AdminUserDetailView from './views/admin/AdminUserDetailView.vue';
 import { getToken } from './api';
 
-const dashboardTabs = ['dashboard', 'reviews', 'qrcodes', 'ai', 'settings'];
+const dashboardTabs = ['dashboard', 'reviews', 'qrcodes', 'whatsapp', 'inbox', 'automations', 'ai', 'settings'];
 const adminTabs = ['dashboard', 'users', 'qr-requests', 'transactions', 'inactive'];
 
 const router = createRouter({

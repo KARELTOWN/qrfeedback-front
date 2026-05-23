@@ -8,13 +8,16 @@ import {
   Download,
   Eye,
   Home,
+  Inbox,
   LineChart,
   Lock,
   MessageSquareText,
   Plus,
   QrCode,
   Settings,
+  Smartphone,
   Star,
+  Workflow,
   X
 } from 'lucide-vue-next';
 import { useAuth } from '../../composables/useAuth';
@@ -32,6 +35,9 @@ import CountryDialSelect from '../../components/CountryDialSelect.vue';
 import BasePagination from '../../components/shared/BasePagination.vue';
 import ToastHost from '../../components/shared/ToastHost.vue';
 import FeedbackFormSettings from '../../components/user/FeedbackFormSettings.vue';
+import AutomationPanel from '../../components/user/AutomationPanel.vue';
+import InboxPanel from '../../components/user/InboxPanel.vue';
+import WhatsAppSettingsPanel from '../../components/user/WhatsAppSettingsPanel.vue';
 import UserPageHeader from '../../components/user/UserPageHeader.vue';
 import UserSidebar from '../../components/user/UserSidebar.vue';
 import { buildInternationalPhone, digitsOnly } from '../../constants/countries';
@@ -39,7 +45,7 @@ import { changePasswordSchema, validateForm, type FormErrors } from '../../valid
 import PasswordField from '../../components/PasswordField.vue';
 import { useToast } from '../../composables/useToast';
 
-type DashboardTab = 'dashboard' | 'reviews' | 'qrcodes' | 'ai' | 'settings';
+type DashboardTab = 'dashboard' | 'reviews' | 'qrcodes' | 'whatsapp' | 'inbox' | 'automations' | 'ai' | 'settings';
 type SettingsTab = 'feedback-form' | 'password';
 type ChangePasswordForm = { currentPassword: string; newPassword: string; confirmPassword: string };
 
@@ -88,6 +94,9 @@ const navItems: Array<{ key: DashboardTab; label: string; icon: typeof Home; bad
   { key: 'dashboard', label: 'Tableau de bord', icon: Home },
   { key: 'reviews', label: 'Avis clients', icon: MessageSquareText },
   { key: 'qrcodes', label: 'QR Code', icon: QrCode },
+  { key: 'whatsapp', label: 'WhatsApp', icon: Smartphone },
+  { key: 'inbox', label: 'Inbox', icon: Inbox },
+  { key: 'automations', label: 'Automations', icon: Workflow },
   { key: 'ai', label: 'Analyse IA', icon: Bot, badge: 'Bientôt' },
   { key: 'settings', label: 'Réglages', icon: Settings }
 ];
@@ -475,6 +484,12 @@ onMounted(() => {
           <span class="mt-3 rounded-full bg-amber-100 px-4 py-2 text-sm font-black text-amber-700">Bientôt</span>
           <p class="mt-4 max-w-xl font-semibold text-slate-500">Synthèse intelligente des avis, détection des irritants et recommandations automatiques.</p>
         </section>
+
+        <WhatsAppSettingsPanel v-if="activeTab === 'whatsapp'" />
+
+        <InboxPanel v-if="activeTab === 'inbox'" />
+
+        <AutomationPanel v-if="activeTab === 'automations'" />
 
         <section v-if="activeTab === 'settings'" class="grid gap-6">
           <div class="inline-flex w-fit rounded-2xl border border-slate-300 bg-white p-1">
