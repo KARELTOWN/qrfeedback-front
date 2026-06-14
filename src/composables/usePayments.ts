@@ -4,19 +4,27 @@ export type Plan = {
   code: string;
   label: string;
   messages: number;
+  whatsappMessages: number;
+  emailNotifications: number;
   priceFcfa: number;
+  unlimited?: boolean;
 };
 
 export type Payment = {
   id: string;
   status: string;
   amountFcfa: number;
-  moneroWalletAddress: string;
-  network: string;
   provider?: string;
   providerPaymentId?: string;
   checkoutUrl?: string;
   currency?: string;
+  kkiapay?: {
+    publicKey: string;
+    sandbox: boolean;
+    amount: number;
+    name: string;
+    email: string;
+  };
 };
 
 export function usePayments() {
@@ -33,9 +41,10 @@ export function usePayments() {
     });
   }
 
-  function verifyPayment(paymentId: string) {
+  function verifyPayment(paymentId: string, transactionId?: string) {
     return api<{ ok: boolean; payment: Payment }>(`/api/payments/${paymentId}/verify`, {
-      method: 'POST'
+      method: 'POST',
+      body: JSON.stringify({ transactionId })
     });
   }
 

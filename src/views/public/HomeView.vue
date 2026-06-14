@@ -2,8 +2,6 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue';
 import { ArrowRight, Building2, CheckCircle2, Copy, Download, Mail, MessageCircle, QrCode, Sparkles, X } from 'lucide-vue-next';
 import { useCompany, type PublicProof, type RegisterCompanyResult } from '../../composables/useCompany';
-import CountryDialSelect from '../../components/CountryDialSelect.vue';
-import { buildInternationalPhone, digitsOnly } from '../../constants/countries';
 
 declare global {
   interface Window {
@@ -24,7 +22,7 @@ declare global {
 }
 
 const { registerCompany, getPublicProof } = useCompany();
-const form = ref({ name: '', email: '', countryDialCode: '+229', whatsappLocalNumber: '' });
+const form = ref({ name: '', email: '' });
 const result = ref<RegisterCompanyResult | null>(null);
 const publicProof = ref<PublicProof>({ companiesCount: 0, reviewsCount: 0, trusts: [] });
 const loading = ref(false);
@@ -159,7 +157,6 @@ async function submit() {
     result.value = await registerCompany({
       name: form.value.name,
       email: form.value.email,
-      whatsappNumber: buildInternationalPhone(form.value.countryDialCode, form.value.whatsappLocalNumber),
       turnstileToken: turnstileToken.value || undefined
     });
     await loadPublicProof();
@@ -170,10 +167,6 @@ async function submit() {
   } finally {
     loading.value = false;
   }
-}
-
-function onPhoneInput(event: Event) {
-  form.value.whatsappLocalNumber = digitsOnly((event.target as HTMLInputElement).value);
 }
 
 async function copyText(value: string) {
@@ -230,12 +223,12 @@ onBeforeUnmount(() => {
 
     <main class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-16">
       <section class="flex flex-col justify-center">
-        <p class="mb-4 text-sm font-black uppercase tracking-wide text-brand-700">20 messages WhatsApp offerts</p>
+        <p class="mb-4 text-sm font-black uppercase tracking-wide text-brand-700">QR Code + notifications email</p>
         <h1 class="max-w-3xl text-5xl font-black leading-[1.02] text-ink sm:text-6xl lg:text-7xl">
           Collectez les avis clients avec un QR Code.
         </h1>
         <p class="mt-8 max-w-2xl text-lg font-semibold leading-8 text-slate-600">
-          Inscrivez votre entreprise, recevez un QR Code PDF par email et obtenez chaque nouvel avis directement sur WhatsApp.
+          Inscrivez votre entreprise, recevez un QR Code par email et obtenez chaque nouvel avis directement dans votre boîte mail.
         </p>
 
         <div class="mt-8 grid max-w-2xl gap-3 sm:grid-cols-2">
@@ -264,7 +257,7 @@ onBeforeUnmount(() => {
             <QrCode :size="18" /> QR Code automatique
           </span>
           <span class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 font-extrabold text-ink shadow-sm">
-            <MessageCircle :size="18" /> Notification WhatsApp
+            <MessageCircle :size="18" />Notifications Telegram
           </span>
           <span class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 font-extrabold text-ink shadow-sm">
             <Mail :size="18" /> Envoi email
@@ -287,14 +280,6 @@ onBeforeUnmount(() => {
             <span class="mb-2 block text-base font-extrabold text-ink">Email</span>
             <input v-model="form.email" required type="email" placeholder="contact@entreprise.com" class="h-14 w-full rounded-xl border border-slate-300 bg-white px-4 text-base font-semibold text-ink outline-none transition focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
           </label>
-          <label class="block">
-            <span class="mb-2 block text-base font-extrabold text-ink">Numéro WhatsApp</span>
-            <div class="grid grid-cols-[150px_1fr] gap-3">
-              <CountryDialSelect v-model="form.countryDialCode" />
-              <input :value="form.whatsappLocalNumber" required inputmode="numeric" pattern="[0-9]*" placeholder="0199997478" class="h-14 w-full rounded-xl border border-slate-300 bg-white px-4 text-base font-semibold text-ink outline-none transition focus:border-brand-700 focus:ring-4 focus:ring-brand-100" @input="onPhoneInput" />
-            </div>
-          </label>
-
           <div v-if="turnstileSiteKey" class="min-h-[65px]">
             <div ref="turnstileContainer"></div>
           </div>
@@ -314,7 +299,7 @@ onBeforeUnmount(() => {
           <CheckCircle2 :size="24" />
           <h2 class="text-2xl font-black text-ink">{{ result.name }}</h2>
         </div>
-        <p class="mb-3 font-semibold text-slate-600">Lien unique envoyé par email avec le QR Code PDF.</p>
+        <p class="mb-3 font-semibold text-slate-600">Lien unique envoyé par email avec le QR Code.</p>
         <a :href="result.feedbackUrl" target="_blank" class="break-all text-base font-black text-brand-700">{{ result.feedbackUrl }}</a>
         <div class="mt-5 flex flex-wrap gap-3">
           <button class="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-300 px-4 font-black text-ink" @click="copyText(result.feedbackUrl)">

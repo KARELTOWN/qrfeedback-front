@@ -85,6 +85,7 @@ function normalizeQuestionOptions(question: CustomQuestionConfig) {
             <input v-model="question.label" class="h-11 rounded-xl border border-slate-300 px-3 font-semibold outline-none focus:border-brand-700" />
             <select v-model="question.type" class="h-11 rounded-xl border border-slate-300 px-3 font-semibold outline-none focus:border-brand-700" @change="normalizeQuestionOptions(question)">
               <option value="text">Texte court</option>
+              <option value="fullName">Nom et prénoms</option>
               <option value="textarea">Paragraphe</option>
               <option value="email">Email</option>
               <option value="phone">Téléphone</option>

@@ -1,7 +1,7 @@
-<script setup lang="ts">
+﻿<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { MessageSquareText, Star } from 'lucide-vue-next';
+import { Angry, CheckCircle2, Frown, Heart, Meh, MessageSquareText, Send, Smile, Star } from 'lucide-vue-next';
 import { useCompany, type CustomQuestionConfig, type FeedbackFieldConfig, type FeedbackFormConfig } from '../../composables/useCompany';
 import { useReviews } from '../../composables/useReviews';
 import CountryDialSelect from '../../components/CountryDialSelect.vue';
@@ -15,6 +15,7 @@ type CompanyPublic = {
 };
 
 const route = useRoute();
+const isEmbed = computed(() => route.query.embed === '1');
 const { getPublicCompany } = useCompany();
 const { createReview } = useReviews();
 const company = ref<CompanyPublic | null>(null);
@@ -28,12 +29,25 @@ const sent = ref(false);
 const error = ref('');
 const customPhoneDialCodes = ref<Record<string, string>>({});
 const customPhoneLocalNumbers = ref<Record<string, string>>({});
+const rememberMe = ref(false);
+const rememberCookieName = 'qr_feedback_remember';
 const stars = computed(() => [1, 2, 3, 4, 5]);
 const formConfig = computed(() => company.value?.feedbackFormConfig);
 const enabledFields = computed(() => formConfig.value?.fields.filter((field) => field.enabled && field.key === 'serviceFeedback') || []);
+const rememberableQuestions = computed(() => (formConfig.value?.customQuestions || []).filter((question) => ['email', 'phone', 'fullName'].includes(question.type)));
+const shouldShowRememberMe = computed(() => rememberableQuestions.value.length > 0);
+const ratingOptions = computed(() => [
+  { value: 1, label: 'Très mauvais', icon: Angry },
+  { value: 2, label: 'Mauvais', icon: Frown },
+  { value: 3, label: 'Correct', icon: Meh },
+  { value: 4, label: 'Bon', icon: Smile },
+  { value: 5, label: 'Parfait', icon: Heart }
+]);
+const selectedRatingLabel = computed(() => ratingOptions.value.find((item) => item.value === form.value.rating)?.label || 'Choisissez une note');
 
 onMounted(async () => {
   company.value = await getPublicCompany(route.params.slug);
+  applyRememberedAnswers();
 });
 
 function fieldConfig(key: FeedbackFieldConfig['key']) {
@@ -64,6 +78,7 @@ function validateCustomAnswer(question: CustomQuestionConfig) {
   if (value === '' || value === undefined || value === null) return true;
   if (question.type === 'email') return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value));
   if (question.type === 'phone') return /^\+[1-9]\d{7,14}$/.test(String(value).replace(/\s/g, ''));
+  if (question.type === 'fullName') return String(value).trim().length >= 2;
   return true;
 }
 
@@ -79,6 +94,61 @@ function updateCustomPhoneDial(question: CustomQuestionConfig, dialCode: string)
   updateCustomPhone(question, customPhoneLocalNumbers.value[question.id] || '');
 }
 
+function readRememberCookie() {
+  const cookie = document.cookie.split('; ').find((item) => item.startsWith(`${rememberCookieName}=`));
+  if (!cookie) return {};
+  try {
+    return JSON.parse(decodeURIComponent(cookie.split('=').slice(1).join('='))) as Record<string, string>;
+  } catch {
+    return {};
+  }
+}
+
+function writeRememberCookie(values: Record<string, string>) {
+  const expires = new Date();
+  expires.setFullYear(expires.getFullYear() + 1);
+  document.cookie = `${rememberCookieName}=${encodeURIComponent(JSON.stringify(values))}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+}
+
+function splitInternationalPhone(phone: string) {
+  const cleaned = phone.replace(/[^\d+]/g, '');
+  const digits = cleaned.replace(/[^\d]/g, '');
+  const knownDialCodes = ['+229', '+225', '+228', '+227', '+234', '+33', '+1'];
+  const dialCode = knownDialCodes.find((code) => cleaned.startsWith(code)) || '+229';
+  return { dialCode, localNumber: digits.slice(dialCode.replace(/[^\d]/g, '').length) };
+}
+
+function rememberKey(question: CustomQuestionConfig) {
+  return `${question.type}:${question.id}`;
+}
+
+function applyRememberedAnswers() {
+  const remembered = readRememberCookie();
+  for (const question of rememberableQuestions.value) {
+    const value = remembered[rememberKey(question)];
+    if (!value) continue;
+    customAnswer(question).value = value;
+    if (question.type === 'phone') {
+      const phone = splitInternationalPhone(value);
+      customPhoneDialCodes.value[question.id] = phone.dialCode;
+      customPhoneLocalNumbers.value[question.id] = phone.localNumber;
+    }
+    rememberMe.value = true;
+  }
+}
+
+function saveRememberedAnswers() {
+  if (!rememberMe.value || !shouldShowRememberMe.value) return;
+  const nextValues = readRememberCookie();
+  for (const question of rememberableQuestions.value) {
+    const value = String(customAnswer(question).value || '').trim();
+    const key = rememberKey(question);
+    if (value) nextValues[key] = value;
+    else delete nextValues[key];
+  }
+  writeRememberCookie(nextValues);
+}
+
 async function submit() {
   loading.value = true;
   error.value = '';
@@ -90,6 +160,7 @@ async function submit() {
     const invalidQuestion = formConfig.value?.customQuestions.find((question) => !validateCustomAnswer(question));
     if (invalidQuestion) throw new Error(`${invalidQuestion.label} est invalide.`);
     await createReview(route.params.slug, form.value);
+    saveRememberedAnswers();
     sent.value = true;
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Erreur inconnue';
@@ -100,72 +171,89 @@ async function submit() {
 </script>
 
 <template>
-  <main class="min-h-screen bg-slate-100 px-4 py-8 sm:py-12">
-    <section class="mx-auto max-w-3xl">
-      <form v-if="!sent" class="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 sm:p-10" @submit.prevent="submit">
-        <div class="mb-8 flex items-start gap-4">
-          <span class="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-brand-700 text-white">
-            <MessageSquareText :size="26" />
-          </span>
-          <div>
-            <h1 class="mt-1 text-3xl font-black text-ink sm:text-4xl">{{ formConfig?.title || company?.name || 'Entreprise' }}</h1>
-          </div>
+  <main class="min-h-screen bg-[#eef6f8] px-4 py-6 sm:py-10" :class="isEmbed ? 'bg-white px-0 py-0' : ''">
+    <section class="mx-auto grid max-w-6xl overflow-hidden rounded-[2rem] bg-white shadow-2xl shadow-slate-200/80 lg:grid-cols-[0.85fr_1.15fr]" :class="isEmbed ? 'max-w-none rounded-none shadow-none lg:block' : ''">
+      <aside v-if="!isEmbed" class="relative min-h-56 bg-gradient-to-br from-teal-700 via-emerald-700 to-cyan-700 p-7 text-white sm:p-10" :class="sent ? 'xl:pr-16' : ''">
+        <div class="relative z-10">
+          <span v-if="!isEmbed" class="grid h-14 w-14 place-items-center rounded-2xl bg-white/15"><MessageSquareText :size="28" /></span>
+          <p v-if="!isEmbed" class="mt-8 text-sm font-black uppercase tracking-wide text-emerald-100">{{ company?.name || 'QR Feedback' }}</p>
+          <h1 class="mt-3 max-w-md text-4xl font-black leading-tight sm:text-5xl lg:text-4xl xl:text-5xl" :class="isEmbed ? 'mt-0 text-xl leading-tight sm:text-2xl' : ''">Un avis aujourd’hui, une meilleure expérience demain.</h1>
+        </div>
+        <div v-if="!sent" class="absolute bottom-6 right-6 hidden max-w-52 rounded-3xl bg-white/12 p-5 backdrop-blur xl:block">
+          <Star class="text-amber-200" :size="36" />
+          <p class="mt-3 max-w-52 font-bold text-white/90">Votre partage d'expérience nous aide à mieux vous servir.</p>
+        </div>
+      </aside>
+
+      <form v-if="!sent" class="grid gap-6 p-5 sm:p-8 lg:p-10" :class="isEmbed ? 'gap-4 p-5 sm:p-6' : ''" @submit.prevent="submit">
+        <div>
+          <h2 class="text-3xl font-black text-ink" :class="isEmbed ? 'text-2xl' : ''">{{ formConfig?.title || 'Comment s’est passée votre expérience ?' }}</h2>
+          <p class="mt-2 font-semibold text-slate-500" :class="isEmbed ? 'text-sm' : ''">Nous lirons votre retour avec attention.</p>
         </div>
 
-        <div class="grid gap-5">
-          <label v-if="fieldConfig('serviceFeedback')" class="block">
-            <span class="mb-2 block font-extrabold text-ink">{{ fieldConfig('serviceFeedback')?.label }} <span v-if="isFieldRequired('serviceFeedback')" class="text-red-600">*</span></span>
-            <textarea v-model="form.serviceFeedback" :required="isFieldRequired('serviceFeedback')" :placeholder="fieldConfig('serviceFeedback')?.placeholder" rows="3" class="w-full rounded-xl border border-slate-300 px-4 py-3 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
-          </label>
+        <section class="rounded-3xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <span class="font-black text-ink">Votre note *</span>
+            <strong class="rounded-full bg-white px-3 py-1 text-sm font-black text-brand-700">{{ selectedRatingLabel }}</strong>
+          </div>
+          <div class="mt-4 grid grid-cols-5 gap-2 sm:gap-3">
+            <button v-for="option in ratingOptions" :key="option.value" type="button" class="grid aspect-square min-h-14 place-items-center rounded-2xl border text-ink transition hover:-translate-y-0.5" :class="form.rating === option.value ? 'border-amber-300 bg-amber-100 shadow-md shadow-amber-100' : 'border-white bg-white hover:border-slate-200'" @click="form.rating = option.value">
+              <component :is="option.icon" :size="28" :fill="option.value === 5 && form.rating === option.value ? 'currentColor' : 'none'" />
+            </button>
+          </div>
+          <div class="mt-3 flex justify-between text-sm font-black text-slate-500"><span>Déçu</span><span>Enchanté</span></div>
+        </section>
 
+        <label v-if="fieldConfig('serviceFeedback')" class="block">
+          <span class="mb-2 block font-extrabold text-ink">{{ fieldConfig('serviceFeedback')?.label }} <span v-if="isFieldRequired('serviceFeedback')" class="text-red-600">*</span></span>
+          <textarea v-model="form.serviceFeedback" :required="isFieldRequired('serviceFeedback')" :placeholder="fieldConfig('serviceFeedback')?.placeholder || 'Dites-nous ce qui vous a marqué...'" rows="4" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-semibold outline-none transition focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
+        </label>
+
+        <div class="grid gap-5">
           <label v-for="question in formConfig?.customQuestions || []" :key="question.id" class="block">
             <span class="mb-2 block font-extrabold text-ink">{{ question.label }} <span v-if="question.required" class="text-red-600">*</span></span>
-            <input v-if="question.type === 'text'" v-model="customAnswer(question).value" :required="question.required" :placeholder="question.placeholder" class="h-13 w-full rounded-xl border border-slate-300 px-4 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
-            <textarea v-else-if="question.type === 'textarea'" v-model="customAnswer(question).value" :required="question.required" :placeholder="question.placeholder" rows="3" class="w-full rounded-xl border border-slate-300 px-4 py-3 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
-            <input v-else-if="question.type === 'email'" v-model.trim="customAnswer(question).value" type="email" :required="question.required" :placeholder="question.placeholder || 'contact@entreprise.com'" class="h-13 w-full rounded-xl border border-slate-300 px-4 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
-            <div v-else-if="question.type === 'phone'" class="grid grid-cols-[140px_1fr] gap-3">
+            <input v-if="question.type === 'text'" v-model="customAnswer(question).value" :required="question.required" :placeholder="question.placeholder" class="h-13 w-full rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
+            <input v-else-if="question.type === 'fullName'" v-model.trim="customAnswer(question).value" :required="question.required" autocomplete="name" :placeholder="question.placeholder || 'Votre nom et prénoms'" class="h-13 w-full rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
+            <textarea v-else-if="question.type === 'textarea'" v-model="customAnswer(question).value" :required="question.required" :placeholder="question.placeholder" rows="3" class="w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
+            <input v-else-if="question.type === 'email'" v-model.trim="customAnswer(question).value" type="email" autocomplete="email" :required="question.required" :placeholder="question.placeholder || 'contact@entreprise.com'" class="h-13 w-full rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
+            <div v-else-if="question.type === 'phone'" class="grid gap-3 sm:grid-cols-[150px_1fr]">
               <CountryDialSelect :model-value="customPhoneDialCodes[question.id] || '+229'" @update:model-value="updateCustomPhoneDial(question, $event)" />
-              <input
-                :value="customPhoneLocalNumbers[question.id] || ''"
-                :required="question.required"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                :placeholder="question.placeholder || '0199997478'"
-                class="h-14 w-full rounded-xl border border-slate-300 px-4 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100"
-                @input="updateCustomPhone(question, ($event.target as HTMLInputElement).value)"
-              />
+              <input :value="customPhoneLocalNumbers[question.id] || ''" :required="question.required" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" :placeholder="question.placeholder || '0199997478'" class="h-14 w-full rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" @input="updateCustomPhone(question, ($event.target as HTMLInputElement).value)" />
             </div>
-            <select v-else-if="question.type === 'select'" v-model="customAnswer(question).value" :required="question.required" class="h-13 w-full rounded-xl border border-slate-300 px-4 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100">
+            <select v-else-if="question.type === 'select'" v-model="customAnswer(question).value" :required="question.required" class="h-13 w-full rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100">
               <option value="">Choisir une option</option>
               <option v-for="option in question.options || []" :key="option" :value="option">{{ option }}</option>
             </select>
-            <div v-else class="flex gap-2">
+            <div v-else class="flex flex-wrap gap-2">
               <button v-for="star in stars" :key="`${question.id}-${star}`" type="button" class="grid h-11 w-11 place-items-center rounded-xl border transition" :class="Number(customAnswer(question).value) >= star ? 'border-amber-300 bg-amber-50 text-amber-500' : 'border-slate-200 bg-white text-slate-300'" @click="customAnswer(question).value = star">
                 <Star :size="24" />
               </button>
             </div>
           </label>
-
-          <div class="rounded-2xl bg-slate-50 p-5">
-            <span class="block font-black text-ink">Donnez-nous une note *</span>
-            <div class="mt-3 flex gap-2">
-              <button v-for="star in stars" :key="star" type="button" class="grid h-12 w-12 place-items-center rounded-xl border transition" :class="form.rating >= star ? 'border-amber-300 bg-amber-50 text-amber-500' : 'border-slate-200 bg-white text-slate-300'" @click="form.rating = star">
-                <Star :size="28" />
-              </button>
-            </div>
-          </div>
         </div>
 
-        <button class="mt-6 h-14 w-full rounded-xl bg-brand-700 text-base font-black text-white transition hover:bg-brand-600 disabled:opacity-60" :disabled="loading || !form.rating">
-          {{ loading ? 'Envoi...' : 'Envoyer mon avis' }}
+        <label v-if="shouldShowRememberMe" class="flex items-start gap-3 rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3 font-bold text-ink">
+          <input v-model="rememberMe" type="checkbox" class="mt-1 h-5 w-5 rounded border-slate-300 text-brand-700 focus:ring-brand-500" />
+          <span>Se souvenir de mes informations</span>
+        </label>
+
+        <button class="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-brand-700 text-base font-black text-white transition hover:bg-brand-600 disabled:opacity-60" :disabled="loading || !form.rating">
+          <Send :size="19" /> {{ loading ? 'Envoi...' : 'Envoyer mon avis' }}
         </button>
-        <p v-if="error" class="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{{ error }}</p>
+        <p v-if="error" class="rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{{ error }}</p>
       </form>
 
-      <div v-else class="rounded-3xl bg-white p-10 text-center shadow-xl shadow-slate-200">
-        <h1 class="text-4xl font-black text-ink">Merci pour votre avis.</h1>
-        <p class="mt-3 font-semibold text-slate-500">Votre retour a bien ete transmis.</p>
+      <div v-else class="grid place-items-center p-8 text-center sm:p-12">
+        <div class="max-w-md">
+          <span class="mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald-100 text-emerald-700"><CheckCircle2 :size="42" /></span>
+          <h1 class="mt-6 text-4xl font-black text-ink">Merci pour votre avis.</h1>
+          <p class="mt-3 text-lg font-semibold leading-8 text-slate-500">Votre retour a bien été transmis. Il aidera l’équipe à améliorer l’expérience des prochains clients.</p>
+        </div>
       </div>
     </section>
   </main>
 </template>
+
+
+
+

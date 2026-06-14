@@ -3,7 +3,7 @@ import { api } from '../api';
 export type RegisterCompanyInput = {
   name: string;
   email: string;
-  whatsappNumber: string;
+  whatsappNumber?: string;
   turnstileToken?: string;
 };
 
@@ -14,6 +14,7 @@ export type RegisterCompanyResult = {
   feedbackUrl: string;
   qrCodeDataUrl: string;
   freeMessagesLimit: number;
+  freeEmailNotificationsLimit: number;
 };
 
 export type PublicProof = {
@@ -36,7 +37,7 @@ export type FeedbackFieldConfig = {
 
 export type CustomQuestionConfig = {
   id: string;
-  type: 'text' | 'textarea' | 'rating' | 'select' | 'email' | 'phone';
+  type: 'text' | 'textarea' | 'rating' | 'select' | 'email' | 'phone' | 'fullName';
   label: string;
   placeholder?: string;
   required: boolean;

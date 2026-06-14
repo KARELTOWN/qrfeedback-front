@@ -30,9 +30,9 @@ onMounted(async () => {
   }
 
   try {
-    await verifyPayment(paymentId);
+    await verifyPayment(paymentId, firstQueryValue(route.query.transaction_id) || firstQueryValue(route.query.transactionId));
     status.value = 'success';
-    message.value = 'Paiement confirme. Vos credits ont ete ajoutes.';
+    message.value = 'Paiement confirme. Votre acces illimite est actif.';
   } catch (error) {
     status.value = 'error';
     message.value = error instanceof Error ? error.message : 'Paiement non confirme.';
