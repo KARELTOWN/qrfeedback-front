@@ -1,18 +1,15 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Ban, Eye, KeyRound, LayoutDashboard, Power, QrCode, ReceiptText, Users } from 'lucide-vue-next';
-import { VueDatePicker } from '@vuepic/vue-datepicker';
-import '@vuepic/vue-datepicker/dist/main.css';
+import { Ban, Eye, KeyRound, LayoutDashboard, Power, QrCode, Users } from 'lucide-vue-next';
 import { clearToken } from '../../api';
-import { useAdmin, type AdminStats, type AdminUser, type InactiveUserItem, type PaginationMeta, type QrRequestsWithoutAccount, type TransactionsResponse } from '../../composables/useAdmin';
+import { useAdmin, type AdminStats, type AdminUser, type InactiveUserItem, type PaginationMeta, type QrRequestsWithoutAccount } from '../../composables/useAdmin';
 import AdminPageHeader from '../../components/admin/AdminPageHeader.vue';
 import AdminSidebar from '../../components/admin/AdminSidebar.vue';
-import TransactionTable from '../../components/admin/AdminTransactionTable.vue';
 import BasePagination from '../../components/shared/BasePagination.vue';
 import { adminContextKey } from '../../composables/useAdminContext';
 
-type AdminTab = 'dashboard' | 'users' | 'qr-requests' | 'transactions' | 'inactive';
+type AdminTab = 'dashboard' | 'users' | 'qr-requests' | 'inactive';
 
 const route = useRoute();
 const router = useRouter();
@@ -30,17 +27,14 @@ const filterUsers = ref<AdminUser[]>([]);
 const emptyPagination: PaginationMeta = { total: 0, page: 1, limit: 10, totalPages: 1 };
 const usersPagination = ref<PaginationMeta>(emptyPagination);
 const qrRequests = ref<QrRequestsWithoutAccount>({ total: 0, companies: [], pagination: emptyPagination });
-const transactions = ref<TransactionsResponse>({ totalRevenueFcfa: 0, transactions: [], pagination: emptyPagination });
 const inactiveUsers = ref<InactiveUserItem[]>([]);
 const inactivePagination = ref<PaginationMeta>(emptyPagination);
-const filters = ref<{ userId: string; dateRange: string[] | null }>({ userId: '', dateRange: null });
 const qrAccountFilter = ref<'all' | 'with' | 'without'>('all');
 const usersSearch = ref('');
 const qrSearch = ref('');
 const pageSize = 10;
 const usersPage = ref(1);
 const qrPage = ref(1);
-const transactionPage = ref(1);
 const inactivePage = ref(1);
 const loading = ref(false);
 const message = ref('');
@@ -51,7 +45,6 @@ const navItems: Array<{ key: AdminTab; label: string; icon: typeof LayoutDashboa
   { key: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
   { key: 'users', label: 'Utilisateurs', icon: Users },
   { key: 'qr-requests', label: 'Demandes QR', icon: QrCode },
-  { key: 'transactions', label: 'Transactions', icon: ReceiptText },
   { key: 'inactive', label: 'Inactifs', icon: Ban }
 ];
 
@@ -59,7 +52,6 @@ const pageTitle = computed(() => navItems.find((item) => item.key === activeTab.
 activeTab.value = getRouteTab();
 const usersTotalPages = computed(() => usersPagination.value.totalPages);
 const qrTotalPages = computed(() => qrRequests.value.pagination.totalPages);
-const transactionTotalPages = computed(() => transactions.value.pagination.totalPages);
 const inactiveTotalPages = computed(() => inactivePagination.value.totalPages);
 
 async function goQrPage(page: number) {
@@ -72,45 +64,13 @@ async function goUsersPage(page: number) {
   await loadUsers();
 }
 
-async function goTransactionPage(page: number) {
-  transactionPage.value = Math.min(Math.max(page, 1), transactionTotalPages.value);
-  await loadTransactions();
-}
-
 async function goInactivePage(page: number) {
   inactivePage.value = Math.min(Math.max(page, 1), inactiveTotalPages.value);
   await loadInactiveUsers();
 }
 
-function formatMoney(value = 0) {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(value);
-}
-
 function formatDate(value?: string) {
   return value ? new Date(value).toLocaleString('fr-FR') : '-';
-}
-
-function formatFilterDate(value?: string) {
-  return value || undefined;
-}
-
-function formatDatePickerRange(value: Array<string | Date> | string | Date) {
-  const format = (date: string | Date) => {
-    if (date instanceof Date) {
-      return `${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')}/${date.getFullYear()}`;
-    }
-    const [year, month, day] = date.split('-');
-    return year && month && day ? `${day}/${month}/${year}` : date;
-  };
-  return Array.isArray(value) ? value.filter(Boolean).map(format).join(' - ') : format(value);
-}
-
-function getDateRangeFilter() {
-  const range = filters.value.dateRange || [];
-  return {
-    startDate: formatFilterDate(range[0]),
-    endDate: formatFilterDate(range[1])
-  };
 }
 
 function setTab(tab: AdminTab) {
@@ -137,22 +97,6 @@ async function loadUsers() {
   usersPagination.value = response.pagination;
 }
 
-async function loadTransactions() {
-  const range = getDateRangeFilter();
-  transactions.value = await admin.getTransactions({
-    userId: filters.value.userId || undefined,
-    startDate: range.startDate,
-    endDate: range.endDate,
-    page: transactionPage.value,
-    limit: pageSize
-  });
-}
-
-async function applyTransactionFilters() {
-  transactionPage.value = 1;
-  await loadTransactions();
-}
-
 async function loadInactiveUsers() {
   const response = await admin.getInactiveUsers({ page: inactivePage.value, limit: pageSize });
   inactiveUsers.value = response.users;
@@ -163,11 +107,10 @@ async function load() {
   loading.value = true;
   message.value = '';
   try {
-    const [statsResult, usersResult, qrRequestsResult, transactionsResult, inactiveResult, filterUsersResult] = await Promise.all([
+    const [statsResult, usersResult, qrRequestsResult, inactiveResult, filterUsersResult] = await Promise.all([
       admin.getStats(),
       admin.getUsers({ page: usersPage.value, limit: pageSize, search: usersSearch.value.trim() || undefined }),
       admin.getQrRequestsWithoutAccount({ page: qrPage.value, limit: pageSize, accountFilter: qrAccountFilter.value, search: qrSearch.value.trim() || undefined }),
-      admin.getTransactions({ page: transactionPage.value, limit: pageSize }),
       admin.getInactiveUsers({ page: inactivePage.value, limit: pageSize }),
       admin.getUsers({ page: 1, limit: 100 })
     ]);
@@ -175,7 +118,6 @@ async function load() {
     users.value = usersResult.users;
     usersPagination.value = usersResult.pagination;
     qrRequests.value = qrRequestsResult;
-    transactions.value = transactionsResult;
     inactiveUsers.value = inactiveResult.users;
     inactivePagination.value = inactiveResult.pagination;
     filterUsers.value = filterUsersResult.users;
@@ -242,7 +184,7 @@ watch(usersSearch, () => {
   }, 450);
 });
 
-provide(adminContextKey, { Ban, Eye, KeyRound, LayoutDashboard, Power, QrCode, ReceiptText, Users, VueDatePicker, AdminPageHeader, AdminSidebar, TransactionTable, BasePagination, route, router, admin, activeTab, stats, users, filterUsers, usersPagination, qrRequests, transactions, inactiveUsers, inactivePagination, filters, qrAccountFilter, usersSearch, qrSearch, usersPage, qrPage, transactionPage, inactivePage, loading, message, navItems, pageTitle, usersTotalPages, qrTotalPages, transactionTotalPages, inactiveTotalPages, goQrPage, goUsersPage, goTransactionPage, goInactivePage, formatMoney, formatDate, formatFilterDate, formatDatePickerRange, getDateRangeFilter, setTab, loadQrRequests, loadUsers, loadTransactions, applyTransactionFilters, loadInactiveUsers, load, resetPassword, toggleUser, openUser, logout });
+provide(adminContextKey, { Ban, Eye, KeyRound, LayoutDashboard, Power, QrCode, Users, AdminPageHeader, AdminSidebar, BasePagination, route, router, admin, activeTab, stats, users, filterUsers, usersPagination, qrRequests, inactiveUsers, inactivePagination, qrAccountFilter, usersSearch, qrSearch, usersPage, qrPage, inactivePage, loading, message, navItems, pageTitle, usersTotalPages, qrTotalPages, inactiveTotalPages, goQrPage, goUsersPage, goInactivePage, formatDate, setTab, loadQrRequests, loadUsers, loadInactiveUsers, load, resetPassword, toggleUser, openUser, logout });
 
 onMounted(() => {
   activeTab.value = getRouteTab();
@@ -262,7 +204,7 @@ onBeforeUnmount(() => {
     <section class="min-w-0 lg:col-start-2">
       <AdminPageHeader :title="pageTitle" :loading="loading" @refresh="load" />
 
-      <div class="m-4 rounded-3xl bg-white p-5 shadow-sm lg:m-6 lg:p-8">
+      <div class="m-4 lg:m-6">
         <p v-if="message" class="mb-5 rounded-xl px-4 py-3 text-sm font-bold" :class="message.includes('Erreur') || message.includes('requis') ? 'bg-red-50 text-red-700' : 'bg-emerald-50 text-emerald-700'">{{ message }}</p>
 
         <RouterView />

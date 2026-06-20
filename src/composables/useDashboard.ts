@@ -5,10 +5,28 @@ export type DashboardStats = {
     name: string;
   };
   count: number;
+  scanCount: number;
+  conversionRate: number;
   averageRating: number;
   remainingMessages: number | null;
   remainingEmailNotifications: number | null;
   unlimitedAccess: boolean;
+  comparison?: {
+    previousCount: number;
+    previousAverageRating: number;
+    countDelta: number;
+    averageRatingDelta: number;
+  };
+  byQrCode?: Array<{
+    qrCodeId: string;
+    label: string;
+    slug?: string;
+    isActive: boolean;
+    count: number;
+    scanCount: number;
+    conversionRate: number;
+    averageRating: number;
+  }>;
 };
 
 export type Review = {
@@ -18,10 +36,14 @@ export type Review = {
   serviceFeedback?: string;
   notificationStatus: string;
   notificationError?: string;
-  notificationWhatsappNumber?: string;
   emailNotificationStatus?: string;
   emailNotificationError?: string;
   notificationEmail?: string;
+  moderationStatus?: 'published' | 'archived';
+  tags?: string[];
+  internalNote?: string;
+  responseText?: string;
+  respondedAt?: string;
   customAnswers?: Array<{
     questionId: string;
     label: string;
@@ -30,14 +52,13 @@ export type Review = {
   }>;
   qrCode?: {
     _id: string;
-    whatsappNumber?: string;
     label?: string;
     slug: string;
+    isActive?: boolean;
   };
 };
 
 export type NotificationPreferences = {
-  whatsappEnabled: boolean;
   emailEnabled: boolean;
   telegramEnabled: boolean;
 };
@@ -69,18 +90,27 @@ export type ReviewFilters = {
   query?: string;
   rating?: number | '';
   sentiment?: 'positive' | 'neutral' | 'negative' | '';
+  notificationStatus?: string;
+  qrCodeId?: string;
+  channel?: 'email' | 'telegram' | '';
+  moderationStatus?: string;
+  includeArchived?: boolean;
   startDate?: string;
   endDate?: string;
 };
 
 export type CompanyQrCode = {
   _id: string;
-  whatsappNumber?: string;
   slug: string;
   feedbackUrl: string;
   qrCodeDataUrl: string;
   label?: string;
+  isActive?: boolean;
+  disabledAt?: string;
   reviewCount: number;
+  scanCount: number;
+  conversionRate: number;
+  averageRating?: number;
   createdAt: string;
   notificationPreferences?: NotificationPreferences;
 };
@@ -129,6 +159,31 @@ export type AiOverview = {
   problems: AiProblemCluster[];
 };
 
+export type AiAnalysis = AiOverview & {
+  comparisonPeriod?: { startDate: string | null; endDate: string | null };
+  reviews: { count: number; averageRating: number; urgent: Array<{ id: string; rating: number; createdAt: string; text: string }> };
+  comparison: { previousReviewCount: number; reviewCountDelta: number; previousAverageRating: number; averageRatingDelta: number; previousScanCount: number; scanCountDelta: number };
+  scans: { count: number; conversionRate: number };
+  topics: AiProblemCluster[];
+  summary: string;
+};
+
+export type RecommendationResult = {
+  recommendations: Array<{ priority: 'high' | 'medium' | 'low'; title: string; action: string; reason: string }>;
+  quota?: { remaining: number; resetAt: string };
+};
+
+export type QrTrend = {
+  qrCodeId: string;
+  label: string;
+  slug: string;
+  isActive: boolean;
+  currentRating: number;
+  trend: { direction: 'up' | 'down' | 'stable'; delta: number; method: string };
+  sparkline: Array<{ start: string; end: string; count: number; averageRating: number | null }>;
+  stats: { min: number; max: number; average: number; reviews: number; scans: number };
+};
+
 export type AiSearchResult = PaginatedReviews & {
   engine: 'typesense' | 'mongo-fallback' | 'none';
 };
@@ -152,13 +207,20 @@ export type CustomQuestionConfig = {
 
 export type FeedbackFormConfig = {
   title: string;
+  welcomeTitle: string;
+  welcomeMessage: string;
   fields: FeedbackFieldConfig[];
   customQuestions: CustomQuestionConfig[];
 };
 
 export function useDashboard() {
-  function getStats() {
-    return api<DashboardStats>('/api/dashboard/stats');
+  function getStats(filters: { startDate?: string; endDate?: string; qrCodeId?: string } = {}) {
+    const params = new URLSearchParams();
+    if (filters.startDate) params.set('startDate', filters.startDate);
+    if (filters.endDate) params.set('endDate', filters.endDate);
+    if (filters.qrCodeId) params.set('qrCodeId', filters.qrCodeId);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return api<DashboardStats>(`/api/dashboard/stats${query}`);
   }
 
   function getReviews(page = 1, limit = 10, filters: ReviewFilters = {}) {
@@ -170,6 +232,11 @@ export function useDashboard() {
     if (filters.query) params.set('q', filters.query);
     if (filters.rating) params.set('rating', String(filters.rating));
     if (filters.sentiment) params.set('sentiment', filters.sentiment);
+    if (filters.notificationStatus) params.set('notificationStatus', filters.notificationStatus);
+    if (filters.qrCodeId) params.set('qrCodeId', filters.qrCodeId);
+    if (filters.channel) params.set('channel', filters.channel);
+    if (filters.moderationStatus) params.set('moderationStatus', filters.moderationStatus);
+    if (filters.includeArchived) params.set('includeArchived', 'true');
     if (filters.startDate) params.set('startDate', filters.startDate);
     if (filters.endDate) params.set('endDate', filters.endDate);
     return api<PaginatedReviews>(`/api/dashboard/reviews?${params.toString()}`);
@@ -231,6 +298,25 @@ export function useDashboard() {
     return api<AiOverview>(`/api/dashboard/ai/overview${query}`);
   }
 
+  function analyse(payload: { startDate?: string; endDate?: string; qrCodeId?: string; weeks?: 4 | 6 | 8 }) {
+    return api<AiAnalysis>('/api/analyse', { method: 'POST', body: JSON.stringify(payload) });
+  }
+
+  async function getRecommendations(payload: AiAnalysis): Promise<RecommendationResult> {
+    const response = await api<Response>('/api/recommandations', { method: 'POST', body: JSON.stringify(payload), raw: true });
+    const data = await response.json() as RecommendationResult;
+    const remaining = response.headers.get('X-RateLimit-Remaining');
+    const resetAt = response.headers.get('X-Reset-At');
+    return {
+      ...data,
+      quota: remaining !== null && resetAt ? { remaining: Number(remaining), resetAt } : data.quota
+    };
+  }
+
+  function getQrTrends(weeks: 4 | 6 | 8) {
+    return api<{ weeks: 4 | 6 | 8; items: QrTrend[] }>(`/api/dashboard/qr-trends?weeks=${weeks}`);
+  }
+
   function searchAiReviews(query: string, page = 1, limit = 10, filters: { startDate?: string; endDate?: string; qrCodeId?: string } = {}) {
     const params = new URLSearchParams({ q: query, page: String(page), limit: String(limit) });
     if (filters.startDate) params.set('startDate', filters.startDate);
@@ -243,15 +329,38 @@ export function useDashboard() {
     return api<{ indexed: number; enabled: boolean }>('/api/dashboard/ai/reindex', { method: 'POST' });
   }
 
-  function createQrCode(payload: { whatsappNumber?: string; label?: string }) {
+  function createQrCode(payload: { label?: string }) {
     return api<CompanyQrCode>('/api/qrcodes', {
       method: 'POST',
       body: JSON.stringify(payload)
     });
   }
 
+  function updateQrCode(qrCodeId: string, payload: { label?: string; isActive?: boolean }) {
+    return api<CompanyQrCode>(`/api/qrcodes/${qrCodeId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  function disableQrCode(qrCodeId: string) {
+    return api<CompanyQrCode>(`/api/qrcodes/${qrCodeId}`, { method: 'DELETE' });
+  }
+
   function updateQrCodeNotifications(qrCodeId: string, payload: NotificationPreferences) {
     return api<CompanyQrCode>(`/api/qrcodes/${qrCodeId}/notifications`, {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  function updateReviewModeration(reviewId: string, payload: {
+    moderationStatus?: 'published' | 'archived';
+    tags?: string[];
+    internalNote?: string;
+    responseText?: string;
+  }) {
+    return api<Review>(`/api/dashboard/reviews/${reviewId}/moderation`, {
       method: 'PATCH',
       body: JSON.stringify(payload)
     });
@@ -264,5 +373,13 @@ export function useDashboard() {
     return response.blob();
   }
 
-  return { getStats, getReviews, getQrCodes, getMonthlyEvolution, getRatingDistribution, getFeedbackFormConfig, updateFeedbackFormConfig, getNotificationPreferences, updateNotificationPreferences, getTelegramLink, getTelegramProfile, getAiOverview, searchAiReviews, reindexAiReviews, createQrCode, updateQrCodeNotifications, exportReviewsCsv };
+  async function downloadQrCodeAsset(qrCodeId: string, format: 'png' | 'pdf') {
+    const response = await fetch(`${API_URL}/api/qrcodes/${qrCodeId}/download.${format}`, {
+      headers: { Authorization: `Bearer ${getToken()}` }
+    });
+    if (!response.ok) throw new Error('Telechargement impossible.');
+    return response.blob();
+  }
+
+  return { getStats, getReviews, getQrCodes, getMonthlyEvolution, getRatingDistribution, getFeedbackFormConfig, updateFeedbackFormConfig, getNotificationPreferences, updateNotificationPreferences, getTelegramLink, getTelegramProfile, getAiOverview, analyse, getRecommendations, getQrTrends, searchAiReviews, reindexAiReviews, createQrCode, updateQrCode, disableQrCode, updateQrCodeNotifications, updateReviewModeration, exportReviewsCsv, downloadQrCodeAsset };
 }

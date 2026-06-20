@@ -51,6 +51,7 @@ export function useAuth() {
     return response;
   }
 
+
   async function forgotPassword(email: string) {
     return api('/api/auth/forgot-password', {
       method: 'POST',

@@ -3,7 +3,6 @@ import { api } from '../api';
 export type RegisterCompanyInput = {
   name: string;
   email: string;
-  whatsappNumber?: string;
   turnstileToken?: string;
 };
 
@@ -13,7 +12,6 @@ export type RegisterCompanyResult = {
   slug: string;
   feedbackUrl: string;
   qrCodeDataUrl: string;
-  freeMessagesLimit: number;
   freeEmailNotificationsLimit: number;
 };
 
@@ -46,6 +44,8 @@ export type CustomQuestionConfig = {
 
 export type FeedbackFormConfig = {
   title: string;
+  welcomeTitle: string;
+  welcomeMessage: string;
   fields: FeedbackFieldConfig[];
   customQuestions: CustomQuestionConfig[];
 };
@@ -62,9 +62,16 @@ export function useCompany() {
     return api<{ name: string; slug: string; feedbackUrl: string; feedbackFormConfig: FeedbackFormConfig }>(`/api/companies/${slug}`);
   }
 
+  function recordPublicScan(slug: string | string[], payload: { idempotencyKey?: string; source?: string } = {}) {
+    return api<{ ok: boolean }>(`/api/companies/${slug}/scan`, {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    });
+  }
+
   function getPublicProof() {
     return api<PublicProof>('/api/companies/public/proof');
   }
 
-  return { registerCompany, getPublicCompany, getPublicProof };
+  return { registerCompany, getPublicCompany, recordPublicScan, getPublicProof };
 }

@@ -52,20 +52,26 @@ function normalizeQuestionOptions(question: CustomQuestionConfig) {
       <p class="mt-1 font-semibold text-slate-500">Personnalisez les libellés et ajoutez quelques questions simples.</p>
     </div>
 
+    <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="mb-4"><h3 class="font-black text-ink">Identité du formulaire</h3><p class="text-sm font-semibold text-slate-500">Titre et messages visibles par vos clients.</p></div>
     <label class="block">
       <span class="mb-2 block font-black text-ink">Titre du formulaire</span>
       <input v-model="config.title" class="h-12 w-full rounded-xl border border-slate-300 px-4 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
     </label>
+    <div class="mt-4 grid gap-4 lg:grid-cols-2">
+      <label class="block"><span class="mb-2 block font-black text-ink">Texte d’accueil</span><textarea v-model="config.welcomeTitle" rows="3" class="w-full rounded-xl border border-slate-300 px-3 py-2 font-semibold outline-none focus:border-brand-700" /></label>
+      <label class="block"><span class="mb-2 block font-black text-ink">Message d’encouragement</span><textarea v-model="config.welcomeMessage" rows="3" class="w-full rounded-xl border border-slate-300 px-3 py-2 font-semibold outline-none focus:border-brand-700" /></label>
+    </div></section>
 
-    <div class="mt-6 grid gap-3">
-      <h3 class="text-lg font-black text-ink">Champs existants</h3>
+    <section class="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div><h3 class="font-black text-ink">Champ commentaire</h3><p class="text-sm font-semibold text-slate-500">Zone de texte libre affichée sous la note.</p></div>
       <article v-for="field in visibleFields" :key="field.key" class="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 lg:grid-cols-[auto_1fr_1fr_auto] lg:items-center">
         <label class="flex items-center gap-2 font-black text-ink"><input v-model="field.enabled" type="checkbox" class="h-5 w-5" /> Actif</label>
         <input v-model="field.label" class="h-11 rounded-xl border border-slate-300 px-3 font-semibold outline-none focus:border-brand-700" />
         <input v-model="field.placeholder" placeholder="Texte indicatif" class="h-11 rounded-xl border border-slate-300 px-3 font-semibold outline-none focus:border-brand-700" />
         <label class="flex items-center gap-2 font-black text-ink"><input v-model="field.required" type="checkbox" class="h-5 w-5" /> Obligatoire</label>
       </article>
-    </div>
+    </section>
 
     <section class="mt-6 overflow-hidden rounded-2xl border border-slate-200 bg-white">
       <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 p-4">

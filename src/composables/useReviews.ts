@@ -4,6 +4,7 @@ export type ReviewInput = {
   serviceFeedback?: string;
   customAnswers?: Array<{ questionId: string; value: string | number }>;
   rating: number;
+  turnstileToken?: string;
 };
 
 export function useReviews() {

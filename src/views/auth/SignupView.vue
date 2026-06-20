@@ -41,6 +41,7 @@ async function submit() {
   }
 }
 
+
 async function submitOtp() {
   toast.value = '';
   otpErrors.value = await validateForm(otpSchema, otpForm.value);

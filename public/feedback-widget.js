@@ -11,7 +11,7 @@
   if (window.__qrFeedbackWidgets[registryKey]) return;
   window.__qrFeedbackWidgets[registryKey] = true;
 
-  var buttonText = script.getAttribute('data-button-text') || 'Feedback';
+  var buttonText = script.getAttribute('data-button-text') || 'Donner un avis';
   var accentColor = script.getAttribute('data-color') || '#0f766e';
   var side = script.getAttribute('data-side') === 'left' ? 'left' : 'right';
   var widgetId = 'qr-feedback-widget-' + Math.random().toString(36).slice(2);

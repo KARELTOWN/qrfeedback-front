@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { Angry, CheckCircle2, Frown, Heart, Meh, MessageSquareText, Send, Smile, Star } from 'lucide-vue-next';
 import { useCompany, type CustomQuestionConfig, type FeedbackFieldConfig, type FeedbackFormConfig } from '../../composables/useCompany';
@@ -16,7 +16,7 @@ type CompanyPublic = {
 
 const route = useRoute();
 const isEmbed = computed(() => route.query.embed === '1');
-const { getPublicCompany } = useCompany();
+const { getPublicCompany, recordPublicScan } = useCompany();
 const { createReview } = useReviews();
 const company = ref<CompanyPublic | null>(null);
 const form = ref({
@@ -24,6 +24,9 @@ const form = ref({
   customAnswers: [] as Array<{ questionId: string; value: string | number }>,
   rating: 0
 });
+const turnstileSiteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY || '';
+const turnstileToken = ref('');
+const turnstileContainer = ref<HTMLElement | null>(null);
 const loading = ref(false);
 const sent = ref(false);
 const error = ref('');
@@ -47,8 +50,74 @@ const selectedRatingLabel = computed(() => ratingOptions.value.find((item) => it
 
 onMounted(async () => {
   company.value = await getPublicCompany(route.params.slug);
+  trackScanQuietly();
   applyRememberedAnswers();
+  await nextTick();
+  renderTurnstile();
 });
+
+let turnstileWidgetId = '';
+
+function scanIdempotencyKey() {
+  const slug = Array.isArray(route.params.slug) ? route.params.slug.join('/') : String(route.params.slug);
+  const key = `qr_feedback_scan:${slug}`;
+  const existing = sessionStorage.getItem(key);
+  if (existing) return existing;
+  const value = `${slug}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
+  sessionStorage.setItem(key, value);
+  return value;
+}
+
+function trackScanQuietly() {
+  recordPublicScan(route.params.slug, {
+    idempotencyKey: scanIdempotencyKey(),
+    source: isEmbed.value ? 'embed' : 'public-form'
+  }).catch(() => {
+    // Le tracking ne doit jamais bloquer le formulaire d'avis.
+  });
+}
+
+function loadTurnstileScript() {
+  if (!turnstileSiteKey || window.turnstile) return Promise.resolve();
+  return new Promise<void>((resolve, reject) => {
+    const existing = document.querySelector<HTMLScriptElement>('script[src*="challenges.cloudflare.com/turnstile"]');
+    if (existing) {
+      existing.addEventListener('load', () => resolve(), { once: true });
+      existing.addEventListener('error', () => reject(new Error('Turnstile indisponible.')), { once: true });
+      return;
+    }
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error('Turnstile indisponible.'));
+    document.head.appendChild(script);
+  });
+}
+
+async function renderTurnstile() {
+  if (!turnstileSiteKey || !turnstileContainer.value) return;
+  await loadTurnstileScript();
+  if (!window.turnstile || turnstileWidgetId) return;
+  turnstileWidgetId = window.turnstile.render(turnstileContainer.value, {
+    sitekey: turnstileSiteKey,
+    callback: (token: string) => {
+      turnstileToken.value = token;
+    },
+    'expired-callback': () => {
+      turnstileToken.value = '';
+    },
+    'error-callback': () => {
+      turnstileToken.value = '';
+    }
+  });
+}
+
+function resetTurnstile() {
+  turnstileToken.value = '';
+  window.turnstile?.reset(turnstileWidgetId);
+}
 
 function fieldConfig(key: FeedbackFieldConfig['key']) {
   return enabledFields.value.find((field) => field.key === key);
@@ -159,11 +228,13 @@ async function submit() {
     if (missingQuestion) throw new Error(`${missingQuestion.label} est requis.`);
     const invalidQuestion = formConfig.value?.customQuestions.find((question) => !validateCustomAnswer(question));
     if (invalidQuestion) throw new Error(`${invalidQuestion.label} est invalide.`);
-    await createReview(route.params.slug, form.value);
+    if (turnstileSiteKey && !turnstileToken.value) throw new Error('Verification anti-robot requise.');
+    await createReview(route.params.slug, { ...form.value, turnstileToken: turnstileToken.value || undefined });
     saveRememberedAnswers();
     sent.value = true;
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Erreur inconnue';
+    resetTurnstile();
   } finally {
     loading.value = false;
   }
@@ -177,11 +248,11 @@ async function submit() {
         <div class="relative z-10">
           <span v-if="!isEmbed" class="grid h-14 w-14 place-items-center rounded-2xl bg-white/15"><MessageSquareText :size="28" /></span>
           <p v-if="!isEmbed" class="mt-8 text-sm font-black uppercase tracking-wide text-emerald-100">{{ company?.name || 'QR Feedback' }}</p>
-          <h1 class="mt-3 max-w-md text-4xl font-black leading-tight sm:text-5xl lg:text-4xl xl:text-5xl" :class="isEmbed ? 'mt-0 text-xl leading-tight sm:text-2xl' : ''">Un avis aujourd’hui, une meilleure expérience demain.</h1>
+          <h1 class="mt-3 max-w-md text-4xl font-black leading-tight sm:text-5xl lg:text-4xl xl:text-5xl" :class="isEmbed ? 'mt-0 text-xl leading-tight sm:text-2xl' : ''">{{ formConfig?.welcomeTitle || "Un avis aujourd’hui, une meilleure expérience demain." }}</h1>
         </div>
         <div v-if="!sent" class="absolute bottom-6 right-6 hidden max-w-52 rounded-3xl bg-white/12 p-5 backdrop-blur xl:block">
           <Star class="text-amber-200" :size="36" />
-          <p class="mt-3 max-w-52 font-bold text-white/90">Votre partage d'expérience nous aide à mieux vous servir.</p>
+          <p class="mt-3 max-w-52 font-bold text-white/90">{{ formConfig?.welcomeMessage || "Votre partage d'expérience nous aide à mieux vous servir." }}</p>
         </div>
       </aside>
 
@@ -236,6 +307,10 @@ async function submit() {
           <input v-model="rememberMe" type="checkbox" class="mt-1 h-5 w-5 rounded border-slate-300 text-brand-700 focus:ring-brand-500" />
           <span>Se souvenir de mes informations</span>
         </label>
+
+        <div v-if="turnstileSiteKey" class="rounded-2xl border border-slate-200 bg-white p-3">
+          <div ref="turnstileContainer"></div>
+        </div>
 
         <button class="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-brand-700 text-base font-black text-white transition hover:bg-brand-600 disabled:opacity-60" :disabled="loading || !form.rating">
           <Send :size="19" /> {{ loading ? 'Envoi...' : 'Envoyer mon avis' }}

@@ -3,7 +3,17 @@
 interface ImportMetaEnv {
   readonly VITE_API_URL?: string;
   readonly VITE_TURNSTILE_SITE_KEY?: string;
-  readonly VITE_KKIAPAY_PUBLIC_KEY?: string;
+  readonly VITE_TELEGRAM_BOT_USERNAME?: string;
+}
+
+interface Window {
+  Telegram?: {
+    WebApp?: {
+      initData: string;
+      ready(): void;
+      expand(): void;
+    };
+  };
 }
 
 interface ImportMeta {

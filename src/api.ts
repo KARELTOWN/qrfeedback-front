@@ -1,4 +1,6 @@
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:4000';
+// En developpement, Vite proxifie /api vers le backend. Un seul tunnel HTTPS
+// vers 5173 couvre donc Telegram Web App et les appels API.
+const API_URL = import.meta.env.VITE_API_URL || '';
 
 type ApiOptions = RequestInit & {
   raw?: boolean;

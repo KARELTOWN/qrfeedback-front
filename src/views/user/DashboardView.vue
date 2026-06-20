@@ -67,7 +67,7 @@ onMounted(loadShell);
     <section class="min-w-0 lg:col-start-2 lg:h-screen lg:overflow-y-auto">
       <UserPageHeader :title="pageTitle" @menu="mobileMenuOpen = true" @refresh="refreshPage" />
 
-      <div class="m-4 rounded-3xl bg-white p-5 shadow-sm lg:m-6 lg:p-8">
+      <div class="m-4 lg:m-6">
         <p v-if="error" class="mb-5 rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{{ error }}</p>
         <RouterView :key="`${route.fullPath}-${pageRefreshKey}`" />
       </div>

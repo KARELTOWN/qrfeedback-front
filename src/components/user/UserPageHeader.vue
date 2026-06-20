@@ -24,7 +24,6 @@ defineEmits<{
       </div>
     </div>
     <div class="flex items-center gap-3">
-      <!-- <RouterLink to="/paiement" class="hidden rounded-full border border-brand-700 px-5 py-3 text-sm font-black text-brand-700 sm:inline-flex">Plateforme gratuite</RouterLink> -->
       <button class="grid h-12 w-12 place-items-center rounded-full bg-slate-100 text-slate-700" @click="$emit('refresh')"><RefreshCcw :size="20" /></button>
     </div>
   </header>

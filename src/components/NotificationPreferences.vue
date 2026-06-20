@@ -1,6 +1,6 @@
-<template>
+﻿<template>
     <div class="notification-preferences">
-        <h2>🔔 Préférences de notification</h2>
+        <h2>ðŸ”” PrÃ©fÃ©rences de notification</h2>
 
         <div v-if="loading" class="loading">
             Chargement...
@@ -8,21 +8,21 @@
 
         <div v-else class="preferences-container">
             <div class="section">
-                <h3>Canaux activés</h3>
+                <h3>Canaux activÃ©s</h3>
 
                 <div class="channel-item">
                     <input v-model="preferences.channels.email" type="checkbox" id="channel-email" />
-                    <label for="channel-email">📧 Email</label>
+                    <label for="channel-email">ðŸ“§ Email</label>
                 </div>
 
                 <div class="channel-item">
                     <input v-model="preferences.channels.telegram" type="checkbox" id="channel-telegram" />
-                    <label for="channel-telegram">📱 Telegram</label>
+                    <label for="channel-telegram">ðŸ“± Telegram</label>
 
                     <div v-if="telegramProfile" class="telegram-connected">
-                        ✅ Connecté: @{{ telegramProfile.username || telegramProfile.firstName }}
+                        âœ… ConnectÃ©: @{{ telegramProfile.username || telegramProfile.firstName }}
                         <button @click="disconnectTelegram" class="btn-secondary-small">
-                            Déconnecter
+                            DÃ©connecter
                         </button>
                     </div>
                     <div v-else class="telegram-not-connected">
@@ -31,14 +31,6 @@
                         </button>
                     </div>
                 </div>
-            </div>
-
-            <div class="section">
-                <h3>Canal préféré</h3>
-                <select v-model="preferences.preferredChannel">
-                    <option value="email" v-if="preferences.channels.email">📧 Email</option>
-                    <option value="telegram" v-if="preferences.channels.telegram">📱 Telegram</option>
-                </select>
             </div>
 
             <div class="actions">
@@ -58,7 +50,6 @@ interface Preferences {
         email: boolean;
         telegram: boolean;
     };
-    preferredChannel: 'email' | 'telegram';
 }
 
 interface TelegramProfile {
@@ -75,7 +66,6 @@ const preferences = ref<Preferences>({
         email: true,
         telegram: false,
     },
-    preferredChannel: 'email',
 });
 const telegramProfile = ref<TelegramProfile | null>(null);
 
@@ -125,7 +115,7 @@ async function savePreferences() {
         });
 
         if (response.ok) {
-            alert('Préférences enregistrées!');
+            alert('PrÃ©fÃ©rences enregistrÃ©es!');
         } else {
             alert('Erreur lors de l\'enregistrement');
         }
@@ -143,7 +133,7 @@ function connectTelegram() {
 }
 
 async function disconnectTelegram() {
-    if (!confirm('Êtes-vous sûr de vouloir déconnecter Telegram?')) {
+    if (!confirm('ÃŠtes-vous sÃ»r de vouloir dÃ©connecter Telegram?')) {
         return;
     }
 
@@ -156,12 +146,12 @@ async function disconnectTelegram() {
         if (response.ok) {
             telegramProfile.value = null;
             preferences.value.channels.telegram = false;
-            alert('Telegram déconnecté');
+            alert('Telegram dÃ©connectÃ©');
             await savePreferences();
         }
     } catch (error) {
         console.error('Failed to disconnect Telegram:', error);
-        alert('Erreur lors de la déconnexion');
+        alert('Erreur lors de la dÃ©connexion');
     }
 }
 </script>
@@ -286,3 +276,4 @@ select {
     background: #0d5d56;
 }
 </style>
+

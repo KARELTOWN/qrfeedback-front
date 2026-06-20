@@ -17,7 +17,7 @@ const { showToast } = useToast();
 const settingsTab = ref<SettingsTab>('feedback-form');
 const formConfig = ref<FeedbackFormConfig | null>(null);
 const formConfigMessage = ref('');
-const notificationPreferences = ref<NotificationPreferences>({ whatsappEnabled: true, emailEnabled: true, telegramEnabled: true });
+const notificationPreferences = ref<NotificationPreferences>({ emailEnabled: true, telegramEnabled: true });
 const telegramProfile = ref<TelegramProfile | null>(null);
 const notificationMessage = ref('');
 const passwordForm = ref<ChangePasswordForm>({ currentPassword: '', newPassword: '', confirmPassword: '' });
@@ -67,7 +67,10 @@ async function submitPasswordChange() {
 async function load() {
   const [config, preferences] = await Promise.all([getFeedbackFormConfig(), getNotificationPreferences()]);
   formConfig.value = config;
-  notificationPreferences.value = { whatsappEnabled: true, emailEnabled: true, telegramEnabled: true, ...preferences };
+  notificationPreferences.value = {
+    emailEnabled: preferences.emailEnabled ?? true,
+    telegramEnabled: preferences.telegramEnabled ?? true
+  };
   await refreshTelegramProfile();
 }
 onMounted(load);

@@ -6,8 +6,6 @@ import HomeView from './views/public/HomeView.vue';
 import FeedbackView from './views/public/FeedbackView.vue';
 import LoginView from './views/auth/LoginView.vue';
 import DashboardView from './views/user/DashboardView.vue';
-import PaymentView from './views/user/PaymentView.vue';
-import PaymentReturnView from './views/user/PaymentReturnView.vue';
 import ResetPasswordView from './views/auth/ResetPasswordView.vue';
 import ForgotPasswordView from './views/auth/ForgotPasswordView.vue';
 import SignupView from './views/auth/SignupView.vue';
@@ -21,11 +19,10 @@ import UserSettingsView from './views/user/UserSettingsView.vue';
 import AdminDashboardView from './views/admin/AdminDashboardView.vue';
 import AdminUsersView from './views/admin/AdminUsersView.vue';
 import AdminQrRequestsView from './views/admin/AdminQrRequestsView.vue';
-import AdminTransactionsView from './views/admin/AdminTransactionsView.vue';
 import AdminInactiveUsersView from './views/admin/AdminInactiveUsersView.vue';
 import { getToken } from './api';
 
-const adminTabs = ['dashboard', 'users', 'qr-requests', 'transactions', 'inactive'];
+const adminTabs = ['dashboard', 'users', 'qr-requests', 'inactive'];
 
 const router = createRouter({
   history: createWebHistory(),
@@ -55,13 +52,10 @@ const router = createRouter({
         { path: 'dashboard', component: AdminDashboardView },
         { path: 'users', component: AdminUsersView },
         { path: 'qr-requests', component: AdminQrRequestsView },
-        { path: 'transactions', component: AdminTransactionsView },
         { path: 'inactive', component: AdminInactiveUsersView }
       ]
     },
     { path: '/admin/user/:userId', component: AdminUserDetailView, meta: { requiresAuth: true } },
-    { path: '/paiement/retour', component: PaymentReturnView },
-    { path: '/paiement/:slug?', component: PaymentView },
     { path: '/reset-password', component: ResetPasswordView }
   ]
 });

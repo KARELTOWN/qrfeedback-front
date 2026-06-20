@@ -5,12 +5,6 @@ export type AdminStats = {
   totalQrCodes: number;
   totalUsers: number;
   totalRevenueFcfa: number;
-  latestTransactions: AdminTransaction[];
-  topPayers: Array<{
-    amount: number;
-    paymentsCount: number;
-    company: { _id: string; name: string; email: string };
-  }>;
 };
 
 export type AdminUser = {
@@ -25,7 +19,6 @@ export type AdminUser = {
     _id?: string;
     name?: string;
     email?: string;
-    whatsappNumber?: string;
   };
   revenueFcfa?: number;
   remainingCredits?: number;
@@ -63,7 +56,6 @@ export type QrRequestsWithoutAccount = {
     _id: string;
     name: string;
     email: string;
-    whatsappNumber?: string;
     feedbackUrl: string;
     hasAccount: boolean;
     userId?: string;
@@ -78,22 +70,12 @@ export type AdminUserDetails = {
     _id: string;
     name: string;
     email: string;
-    whatsappNumber?: string;
-    paidMessagesBalance: number;
-    freeMessagesLimit: number;
-    freeMessagesUsed: number;
   };
   qrCodesCount: number;
   reviewsCount: number;
   remainingCredits: number;
   revenueFcfa: number;
   payments: AdminTransaction[];
-};
-
-export type TransactionsResponse = {
-  totalRevenueFcfa: number;
-  transactions: AdminTransaction[];
-  pagination: PaginationMeta;
 };
 
 export type InactiveUserItem = {
@@ -150,16 +132,6 @@ export function useAdmin() {
     return api<QrRequestsWithoutAccount>(`/api/admin/qr-requests/no-account${query.toString() ? `?${query.toString()}` : ''}`);
   }
 
-  function getTransactions(params: { userId?: string; startDate?: string; endDate?: string; page?: number; limit?: number } = {}) {
-    const query = new URLSearchParams();
-    if (params.userId) query.set('userId', params.userId);
-    if (params.startDate) query.set('startDate', params.startDate);
-    if (params.endDate) query.set('endDate', params.endDate);
-    if (params.page) query.set('page', String(params.page));
-    if (params.limit) query.set('limit', String(params.limit));
-    return api<TransactionsResponse>(`/api/admin/transactions${query.toString() ? `?${query.toString()}` : ''}`);
-  }
-
   function getInactiveUsers(params: { page?: number; limit?: number } = {}) {
     const query = new URLSearchParams();
     if (params.page) query.set('page', String(params.page));
@@ -174,7 +146,6 @@ export function useAdmin() {
     generatePassword,
     setUserActive,
     getQrRequestsWithoutAccount,
-    getTransactions,
     getInactiveUsers
   };
 }
