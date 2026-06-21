@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { Lock, Mail, MessageSquareText, Send } from 'lucide-vue-next';
 import FeedbackFormSettings from '../../components/user/FeedbackFormSettings.vue';
 import PasswordField from '../../components/PasswordField.vue';
@@ -20,8 +20,10 @@ const formConfigMessage = ref('');
 const notificationPreferences = ref<NotificationPreferences>({ emailEnabled: true, telegramEnabled: true });
 const telegramProfile = ref<TelegramProfile | null>(null);
 const notificationMessage = ref('');
+const notificationMessageType = ref<'success' | 'error' | 'info'>('info');
 const passwordForm = ref<ChangePasswordForm>({ currentPassword: '', newPassword: '', confirmPassword: '' });
 const passwordErrors = ref<FormErrors<ChangePasswordForm>>({});
+let telegramPollTimer: ReturnType<typeof setInterval> | null = null;
 
 async function saveFormConfig() {
   if (!formConfig.value) return;
@@ -36,19 +38,52 @@ async function saveNotificationPreferences() {
   try {
     notificationPreferences.value = await updateNotificationPreferences(notificationPreferences.value);
     notificationMessage.value = 'Préférences enregistrées.';
-  } catch (err) { notificationMessage.value = err instanceof Error ? err.message : 'Erreur inconnue'; }
+    notificationMessageType.value = 'success';
+  } catch (err) {
+    notificationMessage.value = err instanceof Error ? err.message : 'Erreur inconnue';
+    notificationMessageType.value = 'error';
+  }
+}
+function stopTelegramPolling() {
+  if (telegramPollTimer) {
+    clearInterval(telegramPollTimer);
+    telegramPollTimer = null;
+  }
+}
+function startTelegramPolling(popup: Window | null) {
+  stopTelegramPolling();
+  const deadline = Date.now() + 2 * 60 * 1000;
+  telegramPollTimer = setInterval(async () => {
+    if (Date.now() > deadline) {
+      stopTelegramPolling();
+      return;
+    }
+    const profile = await refreshTelegramProfile();
+    if (profile) {
+      notificationMessage.value = `Telegram connecté${profile.username ? ' à @' + profile.username : ''}.`;
+      notificationMessageType.value = 'success';
+      popup?.close();
+      stopTelegramPolling();
+    }
+  }, 3000);
 }
 async function connectTelegram() {
   notificationMessage.value = '';
   try {
     const link = await getTelegramLink();
-    window.open(link.url, '_blank', 'noopener,noreferrer');
-    notificationMessage.value = 'Connexion Telegram ouverte. Validez dans Telegram puis revenez ici.';
-  } catch (err) { notificationMessage.value = err instanceof Error ? err.message : 'Erreur inconnue'; }
+    const popup = window.open(link.url, '_blank', 'noreferrer');
+    notificationMessage.value = 'Connexion Telegram ouverte. Validez dans Telegram, vous serez reconnecté automatiquement ici.';
+    notificationMessageType.value = 'info';
+    startTelegramPolling(popup);
+  } catch (err) {
+    notificationMessage.value = err instanceof Error ? err.message : 'Erreur inconnue';
+    notificationMessageType.value = 'error';
+  }
 }
 async function refreshTelegramProfile() {
   const result = await getTelegramProfile();
   telegramProfile.value = result.telegramProfile?.isActive ? result.telegramProfile : null;
+  return telegramProfile.value;
 }
 async function submitPasswordChange() {
   passwordErrors.value = await validateForm(changePasswordSchema, passwordForm.value);
@@ -74,6 +109,7 @@ async function load() {
   await refreshTelegramProfile();
 }
 onMounted(load);
+onUnmounted(stopTelegramPolling);
 </script>
 
 <template>
@@ -101,7 +137,11 @@ onMounted(load);
           </div>
         </div>
       </div>
-      <p v-if="notificationMessage" class="mt-4 rounded-xl px-4 py-3 text-sm font-bold" :class="notificationMessage.includes('enregistr') ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'">{{ notificationMessage }}</p>
+      <p v-if="notificationMessage" class="mt-4 rounded-xl px-4 py-3 text-sm font-bold" :class="{
+        'bg-emerald-50 text-emerald-700': notificationMessageType === 'success',
+        'bg-red-50 text-red-700': notificationMessageType === 'error',
+        'bg-sky-50 text-sky-700': notificationMessageType === 'info'
+      }">{{ notificationMessage }}</p>
       <button class="mt-6 h-13 w-full rounded-xl bg-brand-700 px-5 text-base font-black text-white" @click="saveNotificationPreferences">Enregistrer</button>
     </div>
 

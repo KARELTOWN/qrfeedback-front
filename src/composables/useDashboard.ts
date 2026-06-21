@@ -8,6 +8,7 @@ export type DashboardStats = {
   scanCount: number;
   conversionRate: number;
   averageRating: number;
+  ratingGoal: number;
   remainingMessages: number | null;
   remainingEmailNotifications: number | null;
   unlimitedAccess: boolean;
@@ -159,14 +160,28 @@ export type AiOverview = {
   problems: AiProblemCluster[];
 };
 
+export type AiSentimentTrendPoint = { startDate: string; endDate: string; count: number; positiveRate: number; neutralRate: number; negativeRate: number };
+
 export type AiAnalysis = AiOverview & {
-  comparisonPeriod?: { startDate: string | null; endDate: string | null };
+  period?: { startDate: string | null; endDate: string | null; qrCodeId: string | null };
+  comparisonPeriod?: { startDate: string | null; endDate: string | null; isCustom: boolean };
   reviews: { count: number; averageRating: number; urgent: Array<{ id: string; rating: number; createdAt: string; text: string }> };
-  comparison: { previousReviewCount: number; reviewCountDelta: number; previousAverageRating: number; averageRatingDelta: number; previousScanCount: number; scanCountDelta: number };
+  comparison: {
+    previousReviewCount: number;
+    reviewCountDelta: number;
+    previousAverageRating: number;
+    averageRatingDelta: number;
+    previousScanCount: number;
+    scanCountDelta: number;
+    previousConversionRate: number;
+  };
   scans: { count: number; conversionRate: number };
   topics: AiProblemCluster[];
   summary: string;
+  sentimentTrend: AiSentimentTrendPoint[];
 };
+
+export type AiAnalysisQuery = { startDate?: string; endDate?: string; comparisonStartDate?: string; comparisonEndDate?: string; qrCodeId?: string; weeks?: 4 | 6 | 8 };
 
 export type RecommendationResult = {
   recommendations: Array<{ priority: 'high' | 'medium' | 'low'; title: string; action: string; reason: string }>;
@@ -179,13 +194,16 @@ export type QrTrend = {
   slug: string;
   isActive: boolean;
   currentRating: number;
+  positiveRate: number;
+  negativeRate: number;
   trend: { direction: 'up' | 'down' | 'stable'; delta: number; method: string };
   sparkline: Array<{ start: string; end: string; count: number; averageRating: number | null }>;
   stats: { min: number; max: number; average: number; reviews: number; scans: number };
 };
 
 export type AiSearchResult = PaginatedReviews & {
-  engine: 'typesense' | 'mongo-fallback' | 'none';
+  engine: 'typesense' | 'mongo-fallback' | 'none' | 'topic';
+  topicLabel?: string;
 };
 
 export type FeedbackFieldConfig = {
@@ -281,6 +299,13 @@ export function useDashboard() {
     });
   }
 
+  function updateRatingGoal(ratingGoal: number) {
+    return api<{ ratingGoal: number }>('/api/dashboard/rating-goal', {
+      method: 'PATCH',
+      body: JSON.stringify({ ratingGoal })
+    });
+  }
+
   function getTelegramLink() {
     return api<{ ok: boolean; url: string; expiresInSeconds: number }>('/api/notifications/telegram-link');
   }
@@ -298,11 +323,11 @@ export function useDashboard() {
     return api<AiOverview>(`/api/dashboard/ai/overview${query}`);
   }
 
-  function analyse(payload: { startDate?: string; endDate?: string; qrCodeId?: string; weeks?: 4 | 6 | 8 }) {
+  function analyse(payload: AiAnalysisQuery) {
     return api<AiAnalysis>('/api/analyse', { method: 'POST', body: JSON.stringify(payload) });
   }
 
-  async function getRecommendations(payload: AiAnalysis): Promise<RecommendationResult> {
+  async function getRecommendations(payload: AiAnalysisQuery): Promise<RecommendationResult> {
     const response = await api<Response>('/api/recommandations', { method: 'POST', body: JSON.stringify(payload), raw: true });
     const data = await response.json() as RecommendationResult;
     const remaining = response.headers.get('X-RateLimit-Remaining');
@@ -325,8 +350,20 @@ export function useDashboard() {
     return api<AiSearchResult>(`/api/dashboard/ai/search?${params.toString()}`);
   }
 
+  function getReviewsForTopic(topicKey: string, query: AiAnalysisQuery, page = 1, limit = 10) {
+    return api<AiSearchResult>(`/api/analyse/topics/${topicKey}?page=${page}&limit=${limit}`, {
+      method: 'POST',
+      body: JSON.stringify(query)
+    });
+  }
+
   function reindexAiReviews() {
     return api<{ indexed: number; enabled: boolean }>('/api/dashboard/ai/reindex', { method: 'POST' });
+  }
+
+  async function exportAiAnalysisPdf(payload: AiAnalysisQuery & { recommendations?: RecommendationResult['recommendations'] }) {
+    const response = await api<Response>('/api/analyse/export.pdf', { method: 'POST', body: JSON.stringify(payload), raw: true });
+    return response.blob();
   }
 
   function createQrCode(payload: { label?: string }) {
@@ -381,5 +418,5 @@ export function useDashboard() {
     return response.blob();
   }
 
-  return { getStats, getReviews, getQrCodes, getMonthlyEvolution, getRatingDistribution, getFeedbackFormConfig, updateFeedbackFormConfig, getNotificationPreferences, updateNotificationPreferences, getTelegramLink, getTelegramProfile, getAiOverview, analyse, getRecommendations, getQrTrends, searchAiReviews, reindexAiReviews, createQrCode, updateQrCode, disableQrCode, updateQrCodeNotifications, updateReviewModeration, exportReviewsCsv, downloadQrCodeAsset };
+  return { getStats, getReviews, getQrCodes, getMonthlyEvolution, getRatingDistribution, getFeedbackFormConfig, updateFeedbackFormConfig, getNotificationPreferences, updateNotificationPreferences, updateRatingGoal, getTelegramLink, getTelegramProfile, getAiOverview, analyse, getRecommendations, getQrTrends, searchAiReviews, getReviewsForTopic, reindexAiReviews, exportAiAnalysisPdf, createQrCode, updateQrCode, disableQrCode, updateQrCodeNotifications, updateReviewModeration, exportReviewsCsv, downloadQrCodeAsset };
 }

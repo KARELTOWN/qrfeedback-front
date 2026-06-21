@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { Archive, CalendarDays, ChevronLeft, Download, Eye, Mail, MessageSquareText, Phone, Search, Star, Tag, User, X } from 'lucide-vue-next';
+import { Archive, CalendarDays, ChevronLeft, Download, Eye, Loader2, Mail, MessageSquareText, Phone, Search, Star, Tag, User, X } from 'lucide-vue-next';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import BasePagination from '../../components/shared/BasePagination.vue';
@@ -31,6 +31,7 @@ const contactReviewPage = ref(1);
 const contactPageSize = 9;
 const reviewFilters = ref<ReviewSearchFilters>({ query: '', rating: '', sentiment: '', qrCodeId: '', moderationStatus: '', channel: '', dateRange: null });
 const reviewSearchEngine = ref('');
+const reviewsLoading = ref(false);
 const qrCodes = ref<CompanyQrCode[]>([]);
 const moderationDraft = ref({ moderationStatus: 'published' as Review['moderationStatus'], tags: '', internalNote: '' });
 let reviewSearchDebounce: ReturnType<typeof setTimeout> | undefined;
@@ -120,10 +121,15 @@ function contactIcon(type: string | undefined) {
 }
 
 async function loadReviews() {
-  const result = await getReviews(reviewPage.value, pageSize, activeReviewFilters());
-  reviews.value = result.reviews;
-  reviewPagination.value = result.pagination;
-  reviewSearchEngine.value = result.engine || '';
+  reviewsLoading.value = true;
+  try {
+    const result = await getReviews(reviewPage.value, pageSize, activeReviewFilters());
+    reviews.value = result.reviews;
+    reviewPagination.value = result.pagination;
+    reviewSearchEngine.value = result.engine || '';
+  } finally {
+    reviewsLoading.value = false;
+  }
 }
 
 async function applyReviewFilters() {
@@ -249,7 +255,8 @@ onBeforeUnmount(() => {
             <span class="px-1 text-xs font-black uppercase text-slate-500">Recherche</span>
             <div class="relative">
               <Search class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" :size="18" />
-              <input v-model="reviewFilters.query" placeholder="Nom, téléphone, tag, commentaire..." class="h-11 w-full rounded-xl border border-slate-300 pl-10 pr-3 font-bold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
+              <input v-model="reviewFilters.query" placeholder="Nom, téléphone, tag, commentaire..." class="h-11 w-full rounded-xl border border-slate-300 pl-10 pr-9 font-bold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
+              <Loader2 v-if="reviewsLoading" class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-brand-700" :size="18" />
             </div>
           </label>
           <label class="grid gap-1">
@@ -294,7 +301,10 @@ onBeforeUnmount(() => {
         </article>
       </section>
 
-      <section class="grid gap-4 xl:grid-cols-2">
+      <section class="relative grid gap-4 xl:grid-cols-2">
+        <div v-if="reviewsLoading" class="absolute inset-0 z-10 grid place-items-center rounded-3xl bg-white/60">
+          <Loader2 class="animate-spin text-brand-700" :size="32" />
+        </div>
         <article v-for="review in reviews" :key="review._id" class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-brand-100 hover:shadow-md">
           <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
             <div class="min-w-0 flex-1">
@@ -311,7 +321,7 @@ onBeforeUnmount(() => {
               </div>
 
               <h3 class="mt-4 text-lg font-black text-ink">{{ review.qrCode?.label || 'QR code non précisé' }}</h3>
-              <p class="mt-2 line-clamp-3 text-base font-semibold leading-7 text-slate-700">{{ review.serviceFeedback || 'Aucun commentaire principal.' }}</p>
+              <p class="mt-2 line-clamp-3 text-base font-semibold leading-7 text-slate-700">{{ review.serviceFeedback || '' }}</p>
 
               <div v-if="contactAnswers(review).length" class="mt-4 flex flex-wrap gap-2">
                 <button v-for="answer in contactAnswers(review)" :key="answer.questionId" class="inline-flex max-w-full items-center gap-2 rounded-full bg-brand-50 px-3 py-1.5 text-sm font-black text-brand-700 transition hover:bg-brand-100" @click="openContactReviews(answer)">
@@ -341,7 +351,7 @@ onBeforeUnmount(() => {
           </div>
         </article>
 
-        <div v-if="!reviews.length" class="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center">
+        <div v-if="!reviewsLoading && !reviews.length" class="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center">
           <strong class="block text-xl font-black text-ink">Aucun avis trouvé.</strong>
           <span class="mt-2 block font-semibold text-slate-500">Essayez un autre filtre ou attendez les prochains scans QR.</span>
         </div>
