@@ -4,6 +4,7 @@ import App from './App.vue';
 import './styles.css';
 import HomeView from './views/public/HomeView.vue';
 import FeedbackView from './views/public/FeedbackView.vue';
+import TestimonialsWidgetView from './views/public/TestimonialsWidgetView.vue';
 import LoginView from './views/auth/LoginView.vue';
 import DashboardView from './views/user/DashboardView.vue';
 import ResetPasswordView from './views/auth/ResetPasswordView.vue';
@@ -20,15 +21,20 @@ import AdminDashboardView from './views/admin/AdminDashboardView.vue';
 import AdminUsersView from './views/admin/AdminUsersView.vue';
 import AdminQrRequestsView from './views/admin/AdminQrRequestsView.vue';
 import AdminInactiveUsersView from './views/admin/AdminInactiveUsersView.vue';
+import AdminNotificationTemplatesView from './views/admin/AdminNotificationTemplatesView.vue';
+import TelegramBotView from './views/public/TelegramBotView.vue';
+import FeaturesView from './views/public/FeaturesView.vue';
+import CommunityView from './views/public/CommunityView.vue';
 import { getToken } from './api';
 
-const adminTabs = ['dashboard', 'users', 'qr-requests', 'inactive'];
+const adminTabs = ['dashboard', 'users', 'qr-requests', 'inactive', 'notification-templates'];
 
 const router = createRouter({
   history: createWebHistory(),
   routes: [
     { path: '/', component: HomeView },
     { path: '/avis/:slug', component: FeedbackView },
+    { path: '/temoignages/:slug', component: TestimonialsWidgetView },
     { path: '/login', component: LoginView },
     { path: '/signup', component: SignupView },
     { path: '/forgot-password', component: ForgotPasswordView },
@@ -53,10 +59,14 @@ const router = createRouter({
         { path: 'users', component: AdminUsersView },
         { path: 'qr-requests', component: AdminQrRequestsView },
         { path: 'inactive', component: AdminInactiveUsersView }
+        ,{ path: 'notification-templates', component: AdminNotificationTemplatesView }
       ]
     },
     { path: '/admin/user/:userId', component: AdminUserDetailView, meta: { requiresAuth: true } },
-    { path: '/reset-password', component: ResetPasswordView }
+    { path: '/reset-password', component: ResetPasswordView },
+    { path: '/bot', component: TelegramBotView },
+    { path: '/fonctionnalites', component: FeaturesView },
+    { path: '/communaute', component: CommunityView }
   ]
 });
 

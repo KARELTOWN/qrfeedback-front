@@ -93,6 +93,22 @@ export type InactiveUsersResponse = {
   pagination: PaginationMeta;
 };
 
+export type NotificationVariable = { key: string; label: string; description?: string };
+export type NotificationTemplate = {
+  _id?: string;
+  name: string;
+  label: string;
+  emailTemplate: string;
+  smsTemplate: string;
+  emailTitle: string;
+  smsTitle: string;
+  emailVariables: NotificationVariable[];
+  smsVariables: NotificationVariable[];
+  isActive: boolean;
+};
+
+export type NotificationPreview = { email: { subject: string; html: string }; sms: { title: string; body: string } };
+
 export function useAdmin() {
   function getStats() {
     return api<AdminStats>('/api/admin/stats');
@@ -139,6 +155,14 @@ export function useAdmin() {
     return api<InactiveUsersResponse>(`/api/admin/inactive-users${query.toString() ? `?${query.toString()}` : ''}`);
   }
 
+  function getNotificationTemplates() { return api<{ templates: NotificationTemplate[] }>('/api/admin/notification-templates'); }
+  function createNotificationTemplate(template: NotificationTemplate) { return api<{ template: NotificationTemplate }>('/api/admin/notification-templates', { method: 'POST', body: JSON.stringify(template) }); }
+  function updateNotificationTemplate(name: string, template: NotificationTemplate) {
+    const { name: _name, ...payload } = template;
+    return api<{ template: NotificationTemplate }>(`/api/admin/notification-templates/${encodeURIComponent(name)}`, { method: 'PATCH', body: JSON.stringify(payload) });
+  }
+  function previewNotificationTemplate(name: string, variables: Record<string, string>) { return api<NotificationPreview>(`/api/admin/notification-templates/${encodeURIComponent(name)}/preview`, { method: 'POST', body: JSON.stringify({ variables }) }); }
+
   return {
     getStats,
     getUsers,
@@ -146,6 +170,10 @@ export function useAdmin() {
     generatePassword,
     setUserActive,
     getQrRequestsWithoutAccount,
-    getInactiveUsers
+    getInactiveUsers,
+    getNotificationTemplates,
+    createNotificationTemplate,
+    updateNotificationTemplate,
+    previewNotificationTemplate
   };
 }

@@ -3,6 +3,7 @@
 export type DashboardStats = {
   company: {
     name: string;
+    slug: string;
   };
   count: number;
   scanCount: number;
@@ -62,6 +63,19 @@ export type Review = {
 export type NotificationPreferences = {
   emailEnabled: boolean;
   telegramEnabled: boolean;
+  smsEnabled?: boolean;
+  managerPhone?: string | null;
+  badReviewThreshold?: number;
+};
+
+export type ReviewRedirectConfig = {
+  enabled: boolean;
+  goodRatingThreshold: number;
+  redirectUrl: string | null;
+};
+
+export type AiReplySuggestions = {
+  suggestions: string[];
 };
 
 export type TelegramProfile = {
@@ -391,6 +405,23 @@ export function useDashboard() {
     });
   }
 
+  function getReviewRedirectConfig() {
+    return api<ReviewRedirectConfig>('/api/dashboard/review-redirect-config');
+  }
+
+  function updateReviewRedirectConfig(payload: ReviewRedirectConfig) {
+    return api<ReviewRedirectConfig>('/api/dashboard/review-redirect-config', {
+      method: 'PATCH',
+      body: JSON.stringify(payload)
+    });
+  }
+
+  function suggestReviewReply(reviewId: string) {
+    return api<AiReplySuggestions>(`/api/dashboard/reviews/${reviewId}/ai-suggest-reply`, {
+      method: 'POST'
+    });
+  }
+
   function updateReviewModeration(reviewId: string, payload: {
     moderationStatus?: 'published' | 'archived';
     tags?: string[];
@@ -418,5 +449,5 @@ export function useDashboard() {
     return response.blob();
   }
 
-  return { getStats, getReviews, getQrCodes, getMonthlyEvolution, getRatingDistribution, getFeedbackFormConfig, updateFeedbackFormConfig, getNotificationPreferences, updateNotificationPreferences, updateRatingGoal, getTelegramLink, getTelegramProfile, getAiOverview, analyse, getRecommendations, getQrTrends, searchAiReviews, getReviewsForTopic, reindexAiReviews, exportAiAnalysisPdf, createQrCode, updateQrCode, disableQrCode, updateQrCodeNotifications, updateReviewModeration, exportReviewsCsv, downloadQrCodeAsset };
+  return { getStats, getReviews, getQrCodes, getMonthlyEvolution, getRatingDistribution, getFeedbackFormConfig, updateFeedbackFormConfig, getNotificationPreferences, updateNotificationPreferences, getReviewRedirectConfig, updateReviewRedirectConfig, suggestReviewReply, updateRatingGoal, getTelegramLink, getTelegramProfile, getAiOverview, analyse, getRecommendations, getQrTrends, searchAiReviews, getReviewsForTopic, reindexAiReviews, exportAiAnalysisPdf, createQrCode, updateQrCode, disableQrCode, updateQrCodeNotifications, updateReviewModeration, exportReviewsCsv, downloadQrCodeAsset };
 }

@@ -62,6 +62,7 @@ function ratingTierClass(rating: number) {
 }
 function ratingPercent(count: number) { return Math.round((count / totalRatingCount.value) * 100); }
 
+
 function isUnderperformingQr(item: QrTrend) {
   return item.stats.reviews > 0 && (item.currentRating <= UNDERPERFORMING_RATING_THRESHOLD || item.negativeRate >= UNDERPERFORMING_NEGATIVE_RATE_THRESHOLD);
 }
@@ -123,8 +124,28 @@ function trendPointY(item: QrTrend, index: number) {
   return sparklineCoords(item, index, point?.averageRating ?? 0).y;
 }
 
-function trendBadge(item: QrTrend) { return item.trend.direction === 'up' ? 'Hausse' : item.trend.direction === 'down' ? 'Baisse' : 'Stable'; }
 function trendColor(item: QrTrend) { return item.trend.direction === 'up' ? '#059669' : item.trend.direction === 'down' ? '#e11d48' : '#64748b'; }
+
+function isRecentlyInactive(item: QrTrend) {
+  const last = item.sparkline.at(-1);
+  return !!last && last.count === 0 && last.averageRating === null;
+}
+
+function trendBadgeText(item: QrTrend) {
+  if (isRecentlyInactive(item)) return 'Inactif récemment';
+  if (item.sparkline.length <= 1) return 'Période trop courte';
+  const abs = Math.abs(item.trend.delta).toFixed(1);
+  if (item.trend.direction === 'up') return `+${abs} pt${Number(abs) >= 2 ? 's' : ''}`;
+  if (item.trend.direction === 'down') return `-${abs} pt${Number(abs) >= 2 ? 's' : ''}`;
+  return 'Note stable';
+}
+
+function trendBadgeClass(item: QrTrend) {
+  if (isRecentlyInactive(item)) return 'bg-amber-100 text-amber-700';
+  if (item.trend.direction === 'up') return 'bg-emerald-100 text-emerald-700';
+  if (item.trend.direction === 'down') return 'bg-rose-100 text-rose-700';
+  return 'bg-slate-200 text-slate-700';
+}
 
 // ─── Chargement des données ─────────────────────────────────────────────────
 async function loadMonthlyEvolution() {
@@ -211,7 +232,7 @@ onMounted(load);
     </article>
   </section>
 
-  <section class="mb-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+  <!-- <section class="mb-8 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
     <div class="flex flex-wrap items-start justify-between gap-4">
       <div class="flex items-start gap-3">
         <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-50 text-brand-700"><Target :size="22" /></span>
@@ -239,7 +260,7 @@ onMounted(load);
         {{ ratingGoalReached ? 'Objectif atteint !' : `Encore ${ratingGoalGap} point(s) pour atteindre l'objectif.` }}
       </p>
     </div>
-  </section>
+  </section> -->
 
   <section class="mb-8 grid gap-6">
 
@@ -274,40 +295,66 @@ onMounted(load);
           <div class="flex items-start justify-between gap-3">
             <div>
               <p class="font-black text-ink">{{ item.label }}</p>
-              <strong class="text-2xl font-black" :class="item.stats.reviews ? 'text-ink' : 'text-slate-400'">{{ item.stats.reviews ? `${item.currentRating}/5` : '—' }}</strong>
+              <div class="mt-0.5 flex items-baseline gap-2">
+                <strong class="text-2xl font-black" :class="item.stats.reviews ? 'text-ink' : 'text-slate-400'">{{ item.stats.reviews ? `${item.currentRating}/5` : '—' }}</strong>
+                <span v-if="item.stats.reviews" class="text-sm font-bold text-slate-400">{{ item.stats.reviews }} avis</span>
+              </div>
             </div>
-            <span v-if="item.stats.reviews" class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-black"
-              :class="item.trend.direction === 'up' ? 'bg-emerald-100 text-emerald-700' : item.trend.direction === 'down' ? 'bg-rose-100 text-rose-700' : 'bg-slate-200 text-slate-700'">
-              <TrendingUp v-if="item.trend.direction === 'up'" :size="13" />
-              <TrendingDown v-else-if="item.trend.direction === 'down'" :size="13" />
-              {{ trendBadge(item) }}
+            <span v-if="item.stats.reviews" class="inline-flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs font-black" :class="trendBadgeClass(item)">
+              <TrendingUp v-if="item.trend.direction === 'up' && !isRecentlyInactive(item)" :size="13" />
+              <TrendingDown v-else-if="item.trend.direction === 'down' && !isRecentlyInactive(item)" :size="13" />
+              {{ trendBadgeText(item) }}
             </span>
-            <span v-else class="inline-flex items-center rounded-full bg-slate-200 px-2 py-1 text-xs font-black text-slate-500">Pas d'avis</span>
+            <span v-else class="inline-flex shrink-0 items-center rounded-full bg-slate-200 px-2 py-1 text-xs font-black text-slate-500">Pas d'avis</span>
           </div>
 
           <div v-if="item.stats.reviews" class="relative mt-3">
             <svg viewBox="0 0 200 80" class="h-24 w-full overflow-visible">
-              <polyline :points="trendPoints(item)" fill="none" :stroke="trendColor(item)" stroke-width="3"
+              <!-- Lignes de référence Y (notes 5, 3, 1) -->
+              <line x1="14" y1="12" x2="192" y2="12" stroke="#e2e8f0" stroke-width="1" />
+              <line x1="14" y1="35" x2="192" y2="35" stroke="#e2e8f0" stroke-width="1" stroke-dasharray="3 5" />
+              <line x1="14" y1="58" x2="192" y2="58" stroke="#e2e8f0" stroke-width="1" />
+              <text x="12" y="15" font-size="8" text-anchor="end" class="fill-slate-400 font-bold">5</text>
+              <text x="12" y="38" font-size="8" text-anchor="end" class="fill-slate-400 font-bold">3</text>
+              <text x="12" y="61" font-size="8" text-anchor="end" class="fill-slate-400 font-bold">1</text>
+              <polyline :points="trendPoints(item)" fill="none" :stroke="trendColor(item)" stroke-width="2.5"
                 stroke-linecap="round" stroke-linejoin="round" />
               <circle v-for="(point, index) in item.sparkline" :key="point.start" :cx="trendPointX(item, index)"
-                :cy="trendPointY(item, index)" r="5" :fill="trendColor(item)" class="cursor-pointer"
+                :cy="trendPointY(item, index)" :r="point.count ? 4.5 : 3" :fill="point.count ? trendColor(item) : '#cbd5e1'" class="cursor-pointer"
                 @mouseenter="hoveredTrendPoint = { qrCodeId: item.qrCodeId, index }"
                 @mouseleave="hoveredTrendPoint = null" />
             </svg>
             <div v-if="hoveredTrendPoint?.qrCodeId === item.qrCodeId && item.sparkline[hoveredTrendPoint.index]"
               class="absolute right-0 top-0 rounded-lg bg-ink px-2 py-1 text-xs font-bold text-white">
-              {{ item.sparkline[hoveredTrendPoint.index]?.averageRating ?? '—' }}/5 · {{
-                item.sparkline[hoveredTrendPoint.index]?.count || 0 }} avis
+              {{ item.sparkline[hoveredTrendPoint.index]?.averageRating ?? '—' }}/5 · {{ item.sparkline[hoveredTrendPoint.index]?.count || 0 }} avis
             </div>
           </div>
           <div v-else class="mt-3 grid h-24 place-items-center rounded-xl bg-slate-100/70 text-sm font-bold text-slate-400">
             Pas encore d'avis sur la période
           </div>
 
-          <p class="mt-2 text-xs font-bold text-slate-500">
-            Min {{ item.stats.min }} · Max {{ item.stats.max }} · Moy. {{ item.stats.average }} · {{ item.stats.scans }}
-            scans
-          </p>
+          <!-- Stats footer redesigné -->
+          <div class="mt-3 border-t border-slate-200/80 pt-3">
+            <div v-if="item.stats.reviews" class="grid grid-cols-4 gap-1">
+              <div>
+                <p class="text-[9px] font-black uppercase tracking-wide text-slate-400">Min</p>
+                <p class="text-sm font-black text-slate-700">{{ item.stats.min }}/5</p>
+              </div>
+              <div>
+                <p class="text-[9px] font-black uppercase tracking-wide text-slate-400">Max</p>
+                <p class="text-sm font-black text-slate-700">{{ item.stats.max }}/5</p>
+              </div>
+              <div>
+                <p class="text-[9px] font-black uppercase tracking-wide text-slate-400">Moy.</p>
+                <p class="text-sm font-black text-slate-700">{{ item.stats.average }}/5</p>
+              </div>
+              <div>
+                <p class="text-[9px] font-black uppercase tracking-wide text-slate-400">Scans</p>
+                <p class="text-sm font-black" :class="item.stats.scans ? 'text-slate-700' : 'text-slate-400'">{{ item.stats.scans || '—' }}</p>
+              </div>
+            </div>
+            <p v-else class="text-xs font-bold text-slate-400">{{ item.stats.scans ? `${item.stats.scans} scan(s) · aucun avis` : 'Aucune activité sur la période' }}</p>
+          </div>
         </article>
       </div>
     </div>

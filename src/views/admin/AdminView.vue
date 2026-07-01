@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { Ban, Eye, KeyRound, LayoutDashboard, Power, QrCode, Users } from 'lucide-vue-next';
+import { Ban, Eye, KeyRound, LayoutDashboard, Mail, Power, QrCode, Users } from 'lucide-vue-next';
 import { clearToken } from '../../api';
 import { useAdmin, type AdminStats, type AdminUser, type InactiveUserItem, type PaginationMeta, type QrRequestsWithoutAccount } from '../../composables/useAdmin';
 import AdminPageHeader from '../../components/admin/AdminPageHeader.vue';
@@ -9,7 +9,7 @@ import AdminSidebar from '../../components/admin/AdminSidebar.vue';
 import BasePagination from '../../components/shared/BasePagination.vue';
 import { adminContextKey } from '../../composables/useAdminContext';
 
-type AdminTab = 'dashboard' | 'users' | 'qr-requests' | 'inactive';
+type AdminTab = 'dashboard' | 'users' | 'qr-requests' | 'inactive' | 'notification-templates';
 
 const route = useRoute();
 const router = useRouter();
@@ -45,7 +45,8 @@ const navItems: Array<{ key: AdminTab; label: string; icon: typeof LayoutDashboa
   { key: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
   { key: 'users', label: 'Utilisateurs', icon: Users },
   { key: 'qr-requests', label: 'Demandes QR', icon: QrCode },
-  { key: 'inactive', label: 'Inactifs', icon: Ban }
+  { key: 'inactive', label: 'Inactifs', icon: Ban },
+  { key: 'notification-templates', label: 'Modèles de notification', icon: Mail }
 ];
 
 const pageTitle = computed(() => navItems.find((item) => item.key === activeTab.value)?.label || 'Admin');
@@ -184,7 +185,7 @@ watch(usersSearch, () => {
   }, 450);
 });
 
-provide(adminContextKey, { Ban, Eye, KeyRound, LayoutDashboard, Power, QrCode, Users, AdminPageHeader, AdminSidebar, BasePagination, route, router, admin, activeTab, stats, users, filterUsers, usersPagination, qrRequests, inactiveUsers, inactivePagination, qrAccountFilter, usersSearch, qrSearch, usersPage, qrPage, inactivePage, loading, message, navItems, pageTitle, usersTotalPages, qrTotalPages, inactiveTotalPages, goQrPage, goUsersPage, goInactivePage, formatDate, setTab, loadQrRequests, loadUsers, loadInactiveUsers, load, resetPassword, toggleUser, openUser, logout });
+provide(adminContextKey, { Ban, Eye, KeyRound, LayoutDashboard, Mail, Power, QrCode, Users, AdminPageHeader, AdminSidebar, BasePagination, route, router, admin, activeTab, stats, users, filterUsers, usersPagination, qrRequests, inactiveUsers, inactivePagination, qrAccountFilter, usersSearch, qrSearch, usersPage, qrPage, inactivePage, loading, message, navItems, pageTitle, usersTotalPages, qrTotalPages, inactiveTotalPages, goQrPage, goUsersPage, goInactivePage, formatDate, setTab, loadQrRequests, loadUsers, loadInactiveUsers, load, resetPassword, toggleUser, openUser, logout });
 
 onMounted(() => {
   activeTab.value = getRouteTab();

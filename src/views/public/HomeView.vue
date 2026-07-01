@@ -214,7 +214,16 @@ onBeforeUnmount(() => {
           </span>
           QR Feedback
         </RouterLink>
-        <nav class="flex items-center gap-5 text-sm font-bold text-brand-700">
+        <nav class="flex items-center gap-4 text-sm font-bold text-brand-700">
+          <RouterLink to="/fonctionnalites" class="hidden sm:inline">Fonctionnalités</RouterLink>
+          <RouterLink to="/communaute" class="hidden sm:inline">Communauté</RouterLink>
+          <RouterLink
+            to="/bot"
+            class="hidden items-center gap-1.5 rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 text-brand-700 transition hover:bg-brand-100 sm:inline-flex"
+          >
+            <MessageCircle :size="15" />
+            Bot Telegram
+          </RouterLink>
           <RouterLink to="/login">Connexion</RouterLink>
           <RouterLink to="/signup">Créer un compte</RouterLink>
         </nav>
@@ -223,12 +232,11 @@ onBeforeUnmount(() => {
 
     <main class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-16">
       <section class="flex flex-col justify-center">
-        <p class="mb-4 text-sm font-black uppercase tracking-wide text-brand-700">QR Code + notifications email</p>
         <h1 class="max-w-3xl text-5xl font-black leading-[1.02] text-ink sm:text-6xl lg:text-7xl">
           Collectez les avis clients avec un QR Code.
         </h1>
         <p class="mt-8 max-w-2xl text-lg font-semibold leading-8 text-slate-600">
-          Inscrivez votre entreprise, recevez un QR Code par email et obtenez chaque nouvel avis directement dans votre boîte mail.
+          Obtenez chaque nouvel avis directement dans votre boîte mail. Aucun compte requis.
         </p>
 
         <div class="mt-8 grid max-w-2xl gap-3 sm:grid-cols-2">
@@ -257,10 +265,10 @@ onBeforeUnmount(() => {
             <QrCode :size="18" /> QR Code automatique
           </span>
           <span class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 font-extrabold text-ink shadow-sm">
-            <MessageCircle :size="18" />Notifications Telegram
+            <MessageCircle :size="18" />Bot Telegram
           </span>
           <span class="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 font-extrabold text-ink shadow-sm">
-            <Mail :size="18" /> Envoi email
+            <Mail :size="18" /> Notifications email instantanées
           </span>
         </div>
       </section>
@@ -268,7 +276,7 @@ onBeforeUnmount(() => {
       <section class="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl shadow-slate-200/70 sm:p-8">
         <form class="space-y-6" @submit.prevent="submit">
           <div>
-            <h2 class="text-3xl font-black text-ink">Inscription Entreprise</h2>
+            <h2 class="text-3xl font-black text-ink">Créez votre QR Code</h2>
             <p class="mt-2 text-sm font-medium text-slate-500">Aucun compte requis pour commencer.</p>
           </div>
 

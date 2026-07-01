@@ -20,6 +20,9 @@ importers:
       lucide-vue-next:
         specifier: ^0.468.0
         version: 0.468.0(vue@3.5.34(typescript@5.9.3))
+      suneditor:
+        specifier: ^2.47.2
+        version: 2.47.10
       tailwindcss:
         specifier: ^4.1.7
         version: 4.3.0
@@ -749,6 +752,10 @@ packages:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
 
+  suneditor@2.47.10:
+    resolution: {integrity: sha512-FGpb4r9wXq4YfQ7QiY4Prw4SWiqohYWhxzDhMTJoJhGvUubiPCP8yEDMw01cUBe7itGY9q0OWZbaKlgidf9b1w==}
+    engines: {node: <13.0.0}
+
   tailwindcss@4.3.0:
     resolution: {integrity: sha512-y6nxMGB1nMW9R6k96e5gdIFzcfL/gTJRNaqGes1YvkLnPVXzWgbqFF2yLC0T8G774n24cx3Pe8XrKoniCOAH+Q==}
 
@@ -1424,6 +1431,8 @@ snapshots:
       fsevents: 2.3.3
 
   source-map-js@1.2.1: {}
+
+  suneditor@2.47.10: {}
 
   tailwindcss@4.3.0: {}
 

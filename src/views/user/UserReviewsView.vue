@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { Archive, CalendarDays, ChevronLeft, Download, Eye, Loader2, Mail, MessageSquareText, Phone, Search, Star, Tag, User, X } from 'lucide-vue-next';
+import { Archive, CalendarDays, ChevronLeft, Copy, Download, Eye, Loader2, Mail, MessageSquareText, Phone, Search, Sparkles, Star, Tag, User, X } from 'lucide-vue-next';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import BasePagination from '../../components/shared/BasePagination.vue';
@@ -17,7 +17,7 @@ type ReviewSearchFilters = {
   dateRange: string[] | null;
 };
 
-const { getReviews, getQrCodes, updateReviewModeration, exportReviewsCsv } = useDashboard();
+const { getReviews, getQrCodes, updateReviewModeration, exportReviewsCsv, suggestReviewReply } = useDashboard();
 const emptyPagination: PaginationMeta = { total: 0, page: 1, limit: 10, totalPages: 1 };
 const reviews = ref<Review[]>([]);
 const reviewPagination = ref<PaginationMeta>(emptyPagination);
@@ -34,6 +34,10 @@ const reviewSearchEngine = ref('');
 const reviewsLoading = ref(false);
 const qrCodes = ref<CompanyQrCode[]>([]);
 const moderationDraft = ref({ moderationStatus: 'published' as Review['moderationStatus'], tags: '', internalNote: '' });
+const aiSuggestions = ref<string[]>([]);
+const aiSuggestionsLoading = ref(false);
+const aiSuggestionsError = ref('');
+const copiedIndex = ref<number | null>(null);
 let reviewSearchDebounce: ReturnType<typeof setTimeout> | undefined;
 
 const reviewTotalPages = computed(() => reviewPagination.value.totalPages);
@@ -184,6 +188,29 @@ function openReview(review: Review) {
     tags: (review.tags || []).join(', '),
     internalNote: review.internalNote || ''
   };
+  aiSuggestions.value = [];
+  aiSuggestionsError.value = '';
+  copiedIndex.value = null;
+}
+
+async function loadAiSuggestions() {
+  if (!selectedReview.value || aiSuggestionsLoading.value) return;
+  aiSuggestionsLoading.value = true;
+  aiSuggestionsError.value = '';
+  try {
+    const result = await suggestReviewReply(selectedReview.value._id);
+    aiSuggestions.value = result.suggestions;
+  } catch (err) {
+    aiSuggestionsError.value = err instanceof Error ? err.message : 'Erreur lors de la génération.';
+  } finally {
+    aiSuggestionsLoading.value = false;
+  }
+}
+
+async function copySuggestion(text: string, index: number) {
+  await navigator.clipboard.writeText(text).catch(() => {});
+  copiedIndex.value = index;
+  setTimeout(() => { copiedIndex.value = null; }, 2000);
 }
 
 async function saveModeration() {
@@ -237,7 +264,6 @@ onBeforeUnmount(() => {
           <div>
             <p class="inline-flex items-center gap-2 rounded-full bg-brand-50 px-3 py-1 text-sm font-black text-brand-700">
               <MessageSquareText :size="16" />
-              Avis clients
             </p>
             <h2 class="mt-3 text-3xl font-black text-ink">Retours reçus</h2>
             <p class="mt-2 max-w-2xl font-semibold leading-7 text-slate-600">
@@ -320,7 +346,6 @@ onBeforeUnmount(() => {
                 </span>
               </div>
 
-              <h3 class="mt-4 text-lg font-black text-ink">{{ review.qrCode?.label || 'QR code non précisé' }}</h3>
               <p class="mt-2 line-clamp-3 text-base font-semibold leading-7 text-slate-700">{{ review.serviceFeedback || '' }}</p>
 
               <div v-if="contactAnswers(review).length" class="mt-4 flex flex-wrap gap-2">
@@ -338,15 +363,23 @@ onBeforeUnmount(() => {
               </div>
             </div>
 
-            <div class="flex shrink-0 flex-row gap-2 lg:flex-col">
-              <button class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 font-black text-ink transition hover:bg-slate-50" @click="openReview(review)">
-                <Eye :size="17" />
-                Détail
-              </button>
-              <button class="inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 font-black text-slate-700 transition hover:bg-slate-50" @click="archiveReview(review)">
-                <Archive :size="17" />
-                {{ review.moderationStatus === 'archived' ? 'Désarchiver' : 'Archiver' }}
-              </button>
+            <div class="flex shrink-0 flex-row gap-1.5 lg:flex-col">
+              <div class="group relative">
+                <button class="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 text-slate-500 transition hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700" aria-label="Voir le détail" @click="openReview(review)">
+                  <Eye :size="16" />
+                </button>
+                <span class="pointer-events-none absolute bottom-full right-0 mb-2 whitespace-nowrap rounded-lg bg-slate-800 px-2 py-1 text-xs font-bold text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                  Voir le détail
+                </span>
+              </div>
+              <div class="group relative">
+                <button class="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 transition" :class="review.moderationStatus === 'archived' ? 'text-emerald-600 hover:border-emerald-200 hover:bg-emerald-50' : 'text-slate-500 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600'" :aria-label="review.moderationStatus === 'archived' ? 'Désarchiver' : 'Archiver'" @click="archiveReview(review)">
+                  <Archive :size="16" />
+                </button>
+                <span class="pointer-events-none absolute bottom-full right-0 mb-2 whitespace-nowrap rounded-lg bg-slate-800 px-2 py-1 text-xs font-bold text-white opacity-0 shadow-lg transition-opacity group-hover:opacity-100">
+                  {{ review.moderationStatus === 'archived' ? 'Désarchiver' : 'Archiver' }}
+                </span>
+              </div>
             </div>
           </div>
         </article>
@@ -444,6 +477,50 @@ onBeforeUnmount(() => {
             <p class="text-xs font-black uppercase text-slate-500">{{ answer.label }}</p>
             <p class="mt-2 break-words font-semibold text-ink">{{ answer.value || '-' }}</p>
           </div>
+        </div>
+
+        <!-- IA : suggestions de réponse -->
+        <div class="mt-5 rounded-2xl border border-brand-100 bg-brand-50/40 p-4">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <Sparkles :size="18" class="text-brand-700" />
+              <span class="font-black text-ink">Suggestions de réponse IA</span>
+            </div>
+            <button
+              class="inline-flex h-9 items-center gap-2 rounded-xl bg-brand-700 px-4 text-sm font-black text-white transition hover:bg-brand-600 disabled:opacity-50"
+              :disabled="aiSuggestionsLoading"
+              @click="loadAiSuggestions"
+            >
+              <Loader2 v-if="aiSuggestionsLoading" :size="15" class="animate-spin" />
+              <Sparkles v-else :size="15" />
+              {{ aiSuggestions.length ? 'Régénérer' : 'Générer' }}
+            </button>
+          </div>
+
+          <p v-if="aiSuggestionsError" class="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-600">{{ aiSuggestionsError }}</p>
+
+          <div v-if="aiSuggestions.length" class="mt-4 grid gap-3">
+            <div
+              v-for="(suggestion, i) in aiSuggestions"
+              :key="i"
+              class="rounded-2xl border border-brand-100 bg-white p-4"
+            >
+              <p class="text-sm font-semibold leading-6 text-slate-700">{{ suggestion }}</p>
+              <button
+                class="mt-3 inline-flex h-8 items-center gap-2 rounded-lg px-3 text-xs font-black transition"
+                :class="copiedIndex === i ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600 hover:bg-brand-50 hover:text-brand-700'"
+                @click="copySuggestion(suggestion, i)"
+              >
+                <Copy v-if="copiedIndex !== i" :size="13" />
+                <span v-if="copiedIndex !== i">Copier</span>
+                <span v-else>✓ Copié</span>
+              </button>
+            </div>
+          </div>
+
+          <p v-else-if="!aiSuggestionsLoading" class="mt-3 text-sm font-semibold text-slate-400">
+            Cliquez sur "Générer" pour obtenir 3 suggestions personnalisées selon le ton de l'avis.
+          </p>
         </div>
 
         <div class="mt-5 grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">

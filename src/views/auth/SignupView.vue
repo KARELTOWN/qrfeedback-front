@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { Mail, QrCode, ShieldCheck } from 'lucide-vue-next';
+import { Mail, MessageCircle, QrCode, ShieldCheck } from 'lucide-vue-next';
 import { useAuth, type SignupInput } from '../../composables/useAuth';
 import { otpSchema, signupSchema, validateForm, type FormErrors } from '../../validators/auth.validator';
 import PasswordField from '../../components/PasswordField.vue';
@@ -75,19 +75,30 @@ async function resendOtp() {
 </script>
 
 <template>
-  <main class="grid min-h-screen place-items-center bg-slate-100 px-4 py-10">
+  <div class="min-h-screen bg-slate-100">
+    <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+        <RouterLink to="/" class="flex items-center gap-3 text-xl font-black text-ink">
+          <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-700 text-white">
+            <QrCode :size="22" />
+          </span>
+          QR Feedback
+        </RouterLink>
+        <nav class="flex items-center gap-4 text-sm font-bold text-brand-700">
+          <RouterLink to="/fonctionnalites" class="hidden sm:inline">Fonctionnalités</RouterLink>
+          <RouterLink to="/bot" class="hidden items-center gap-1.5 rounded-xl border border-brand-200 bg-brand-50 px-3 py-2 transition hover:bg-brand-100 sm:inline-flex">
+            <MessageCircle :size="15" />
+            Bot Telegram
+          </RouterLink>
+          <RouterLink to="/login">Connexion</RouterLink>
+          <RouterLink to="/signup">Créer un compte</RouterLink>
+        </nav>
+      </div>
+    </header>
+    <main class="grid place-items-center px-4 py-10">
     <section class="w-full max-w-3xl rounded-3xl bg-white px-6 py-10 shadow-xl shadow-slate-200 sm:px-16 sm:py-14">
-      <RouterLink to="/" class="mx-auto mb-8 flex w-fit items-center gap-3 text-3xl font-black text-ink">
-        <span class="grid h-12 w-12 place-items-center rounded-full bg-brand-700 text-white"><QrCode :size="26" /></span>
-        QR Feedback
-      </RouterLink>
-
       <h1 class="text-center text-4xl font-black text-ink sm:text-5xl">{{ otpStep ? 'Vérification OTP' : 'Créer un compte entreprise' }}</h1>
       <div class="mt-4 space-y-2 text-center font-semibold text-slate-500">
-        <p>
-          Vous avez déjà un compte ?
-          <RouterLink to="/login" class="font-black text-brand-700">Connectez-vous</RouterLink>
-        </p>
         <p>
           Mot de passe oublié ?
           <RouterLink to="/forgot-password" class="font-black text-brand-700">Réinitialisez-le</RouterLink>
@@ -131,5 +142,6 @@ async function resendOtp() {
 
       <p v-if="toast" class="mx-auto mt-6 max-w-xl rounded-xl px-4 py-3 text-sm font-bold" :class="toast.includes('envoyé') ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'">{{ toast }}</p>
     </section>
-  </main>
+    </main>
+  </div>
 </template>

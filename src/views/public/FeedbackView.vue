@@ -30,6 +30,9 @@ const turnstileContainer = ref<HTMLElement | null>(null);
 const loading = ref(false);
 const sent = ref(false);
 const error = ref('');
+const redirectUrl = ref<string | null>(null);
+const redirectCountdown = ref(0);
+let redirectTimer: ReturnType<typeof setTimeout> | null = null;
 const customPhoneDialCodes = ref<Record<string, string>>({});
 const customPhoneLocalNumbers = ref<Record<string, string>>({});
 const rememberMe = ref(false);
@@ -46,7 +49,6 @@ const ratingOptions = computed(() => [
   { value: 4, label: 'Bon', icon: Smile },
   { value: 5, label: 'Parfait', icon: Heart }
 ]);
-const selectedRatingLabel = computed(() => ratingOptions.value.find((item) => item.value === form.value.rating)?.label || 'Choisissez une note');
 
 onMounted(async () => {
   company.value = await getPublicCompany(route.params.slug);
@@ -218,6 +220,20 @@ function saveRememberedAnswers() {
   writeRememberCookie(nextValues);
 }
 
+function startRedirectCountdown(url: string) {
+  redirectUrl.value = url;
+  redirectCountdown.value = 3;
+  const tick = () => {
+    redirectCountdown.value -= 1;
+    if (redirectCountdown.value <= 0) {
+      window.location.href = url;
+    } else {
+      redirectTimer = setTimeout(tick, 1000);
+    }
+  };
+  redirectTimer = setTimeout(tick, 1000);
+}
+
 async function submit() {
   loading.value = true;
   error.value = '';
@@ -229,9 +245,10 @@ async function submit() {
     const invalidQuestion = formConfig.value?.customQuestions.find((question) => !validateCustomAnswer(question));
     if (invalidQuestion) throw new Error(`${invalidQuestion.label} est invalide.`);
     if (turnstileSiteKey && !turnstileToken.value) throw new Error('Verification anti-robot requise.');
-    await createReview(route.params.slug, { ...form.value, turnstileToken: turnstileToken.value || undefined });
+    const result = await createReview(route.params.slug, { ...form.value, turnstileToken: turnstileToken.value || undefined });
     saveRememberedAnswers();
     sent.value = true;
+    if (result.redirectUrl) startRedirectCountdown(result.redirectUrl);
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Erreur inconnue';
     resetTurnstile();
@@ -265,7 +282,6 @@ async function submit() {
         <section class="rounded-3xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
           <div class="flex flex-wrap items-center justify-between gap-3">
             <span class="font-black text-ink">Votre note *</span>
-            <strong class="rounded-full bg-white px-3 py-1 text-sm font-black text-brand-700">{{ selectedRatingLabel }}</strong>
           </div>
           <div class="mt-4 grid grid-cols-5 gap-2 sm:gap-3">
             <button v-for="option in ratingOptions" :key="option.value" type="button" class="grid aspect-square min-h-14 place-items-center rounded-2xl border text-ink transition hover:-translate-y-0.5" :class="form.rating === option.value ? 'border-amber-300 bg-amber-100 shadow-md shadow-amber-100' : 'border-white bg-white hover:border-slate-200'" @click="form.rating = option.value">
@@ -323,6 +339,14 @@ async function submit() {
           <span class="mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald-100 text-emerald-700"><CheckCircle2 :size="42" /></span>
           <h1 class="mt-6 text-4xl font-black text-ink">Merci pour votre avis.</h1>
           <p class="mt-3 text-lg font-semibold leading-8 text-slate-500">Votre retour a bien été transmis. Il aidera l’équipe à améliorer l’expérience des prochains clients.</p>
+
+          <div v-if="redirectUrl" class="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-5">
+            <p class="font-black text-emerald-800">Votre avis compte vraiment !</p>
+            <p class="mt-1 text-sm font-semibold text-emerald-700">Vous allez être redirigé pour laisser un avis public dans <strong>{{ redirectCountdown }}s</strong>…</p>
+            <a :href="redirectUrl" class="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 font-black text-white transition hover:bg-emerald-600">
+              Laisser un avis public maintenant
+            </a>
+          </div>
         </div>
       </div>
     </section>

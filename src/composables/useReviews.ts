@@ -7,9 +7,15 @@ export type ReviewInput = {
   turnstileToken?: string;
 };
 
+export type ReviewCreatedResponse = {
+  id: string;
+  notificationStatus: string;
+  redirectUrl: string | null;
+};
+
 export function useReviews() {
   function createReview(slug: string | string[], payload: ReviewInput) {
-    return api(`/api/reviews/${slug}`, {
+    return api<ReviewCreatedResponse>(`/api/reviews/${slug}`, {
       method: 'POST',
       body: JSON.stringify(payload)
     });

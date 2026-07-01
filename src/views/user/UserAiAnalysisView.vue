@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { AlertTriangle, BarChart3, BrainCircuit, Download, GitCompare, Lightbulb, PieChart, RefreshCw, Search, Sparkles, TrendingUp } from 'lucide-vue-next';
+import { AlertTriangle, BarChart3, BrainCircuit, Download, GitCompare, PieChart, RefreshCw, Search, TrendingUp } from 'lucide-vue-next';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import BasePagination from '../../components/shared/BasePagination.vue';
+import AiRecommendationCard from '../../components/user/AiRecommendationCard.vue';
 import { useDashboard, type AiAnalysis, type AiProblemCluster, type AiSearchResult, type CompanyQrCode, type Review } from '../../composables/useDashboard';
 
 const { analyse, getRecommendations, getQrCodes, searchAiReviews, getReviewsForTopic, reindexAiReviews, exportAiAnalysisPdf } = useDashboard();
@@ -155,6 +156,8 @@ const comparisonMetrics = computed(() => {
     }
   ];
 });
+
+const aiTrendsText = computed(() => cleanText(aiOverview.value?.trends.text) || 'Aucune tendance disponible pour le moment.');
 
 const recommendation = computed(() => {
   if (!totalReviews.value) return 'Aucun avis sur cette période. Commencez par vérifier que vos QR codes sont visibles et faciles à scanner.';
@@ -580,32 +583,16 @@ watch(() => [route.query.startDate, route.query.endDate, route.query.qrCodeId], 
     </section>
 
     <section class="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
-      <article class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-        <div class="mb-5 flex items-start gap-3">
-          <span class="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-brand-700 text-white"><Lightbulb :size="22" /></span>
-          <div>
-            <h3 class="text-xl font-black text-ink">À faire en priorité</h3>
-            <p class="mt-1 font-semibold text-slate-500">La recommandation la plus utile d'après les avis sélectionnés.</p>
-          </div>
-        </div>
-        <div class="rounded-2xl border border-brand-100 bg-brand-50 p-4">
-          <p class="text-xs font-black uppercase tracking-wide text-brand-700">Lecture rapide</p>
-          <p class="mt-1 font-bold leading-6 text-brand-950">{{ recommendation }}</p>
-        </div>
-        <button class="mt-4 inline-flex h-11 items-center gap-2 rounded-xl bg-brand-700 px-4 font-black text-white disabled:cursor-wait disabled:opacity-70" :disabled="recommendationsLoading || !aiOverview" @click="loadRecommendations">
-          <Sparkles :size="17" :class="{ 'animate-pulse': recommendationsLoading }" />
-          {{ recommendationsLoading ? 'Préparation…' : 'Obtenir des recommandations' }}
-        </button>
-        <span v-if="recommendationQuota" class="ml-3 text-sm font-bold text-slate-500">{{ recommendationQuota.remaining }} recommandation(s) restante(s) cette semaine · remise à zéro le {{ formatDate(recommendationQuota.resetAt) }}</span>
-        <div v-if="recommendationItems.length" class="mt-5 grid gap-3">
-          <p class="text-xs font-black uppercase tracking-wide text-slate-500">Plan d’action recommandé</p>
-          <article v-for="(item, index) in recommendationItems" :key="item.title" class="relative rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-            <div class="absolute inset-y-0 left-0 w-1 rounded-l-2xl" :class="item.priority === 'high' ? 'bg-rose-500' : item.priority === 'medium' ? 'bg-amber-500' : 'bg-emerald-500'"></div>
-            <div class="pl-3"><div class="flex flex-wrap items-center justify-between gap-2"><h4 class="font-black text-ink">{{ index + 1 }}. {{ item.title }}</h4><span class="rounded-full px-2.5 py-1 text-xs font-black" :class="item.priority === 'high' ? 'bg-rose-50 text-rose-700' : item.priority === 'medium' ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700'">{{ item.priority === 'high' ? 'Priorité haute' : item.priority === 'medium' ? 'Priorité moyenne' : 'À consolider' }}</span></div><p class="mt-3 font-bold leading-6 text-slate-800">{{ item.action }}</p><p class="mt-3 border-t border-slate-100 pt-3 text-sm leading-5 text-slate-500"><span class="font-black text-slate-600">Pourquoi :</span> {{ item.reason }}</p></div>
-          </article>
-        </div>
-        <p class="mt-5 border-t border-slate-100 pt-4 text-sm font-semibold leading-6 text-slate-500">{{ cleanText(aiOverview?.trends.text) || 'Aucune tendance disponible pour le moment.' }}</p>
-      </article>
+      <AiRecommendationCard
+        :recommendation="recommendation"
+        :loading="recommendationsLoading"
+        :disabled="!aiOverview"
+        :quota="recommendationQuota"
+        :items="recommendationItems"
+        :trends-text="aiTrendsText"
+        :period-label="currentPeriodLabel"
+        @request="loadRecommendations"
+      />
 
       <article class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
         <div class="mb-5 flex items-start gap-3">
