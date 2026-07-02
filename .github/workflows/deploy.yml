@@ -31,4 +31,4 @@ jobs:
       - name: Build and restart frontend
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }} \
-            "cd /opt/qrfeedback && docker compose up -d --build frontend"
+            "cd /opt/qrfeedback && set -a && . ./front/.env && set +a && docker compose up -d --build frontend"
