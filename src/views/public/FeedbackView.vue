@@ -1,4 +1,4 @@
-﻿<script setup lang="ts">
+<script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { Angry, CheckCircle2, Frown, Heart, Meh, MessageSquareText, Send, Smile, Star } from 'lucide-vue-next';
@@ -264,7 +264,7 @@ async function submit() {
       <aside v-if="!isEmbed" class="relative min-h-56 bg-gradient-to-br from-teal-700 via-emerald-700 to-cyan-700 p-7 text-white sm:p-10" :class="sent ? 'xl:pr-16' : ''">
         <div class="relative z-10">
           <span v-if="!isEmbed" class="grid h-14 w-14 place-items-center rounded-2xl bg-white/15"><MessageSquareText :size="28" /></span>
-          <p v-if="!isEmbed" class="mt-8 text-sm font-black uppercase tracking-wide text-emerald-100">{{ company?.name || 'QR Feedback' }}</p>
+          <p v-if="!isEmbed" class="mt-8 text-sm font-black uppercase tracking-wide text-emerald-100">{{ company?.name || 'Opinbase' }}</p>
           <h1 class="mt-3 max-w-md text-4xl font-black leading-tight sm:text-5xl lg:text-4xl xl:text-5xl" :class="isEmbed ? 'mt-0 text-xl leading-tight sm:text-2xl' : ''">{{ formConfig?.welcomeTitle || "Un avis aujourd’hui, une meilleure expérience demain." }}</h1>
         </div>
         <div v-if="!sent" class="absolute bottom-6 right-6 hidden max-w-52 rounded-3xl bg-white/12 p-5 backdrop-blur xl:block">

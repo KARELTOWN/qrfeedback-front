@@ -6,7 +6,7 @@
             </div>
 
             <div class="content">
-                <p>Connectez votre compte à notre bot Telegram <strong>QrFeedback</strong> pour:</p>
+                <p>Connectez votre compte à notre bot Telegram <strong>Opinbase</strong> pour:</p>
 
                 <ul class="features">
                     <li>✅ Créer et gérer vos QR codes</li>
@@ -46,7 +46,7 @@
 
                     <ol>
                         <li>
-                            Ouvrez Telegram et recherchez: <code>QrFeedbackBot</code>
+                            Ouvrez Telegram et recherchez: <code>Opinbasebot</code>
                         </li>
                         <li>
                             Cliquez sur le bot dans les résultats
@@ -82,7 +82,7 @@ const showManualConnection = ref(false);
 const userChatId = ref('');
 const connectionStatus = ref<ConnectionStatus | null>(null);
 
-const BOT_USERNAME = 'QrFeedbackBot'; // À remplacer par votre vrai bot username
+const BOT_USERNAME = 'Opinbasebot'; // À remplacer par votre vrai bot username
 
 function connectToBot() {
     const deepLink = `https://t.me/${BOT_USERNAME}?start=connect`;

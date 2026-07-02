@@ -1,6 +1,6 @@
-﻿<template>
+<template>
     <div class="notification-preferences">
-        <h2>ðŸ”” PrÃ©fÃ©rences de notification</h2>
+        <h2>🔔 Préférences de notification</h2>
 
         <div v-if="loading" class="loading">
             Chargement...
@@ -8,21 +8,21 @@
 
         <div v-else class="preferences-container">
             <div class="section">
-                <h3>Canaux activÃ©s</h3>
+                <h3>Canaux activés</h3>
 
                 <div class="channel-item">
                     <input v-model="preferences.channels.email" type="checkbox" id="channel-email" />
-                    <label for="channel-email">ðŸ“§ Email</label>
+                    <label for="channel-email">📧 Email</label>
                 </div>
 
                 <div class="channel-item">
                     <input v-model="preferences.channels.telegram" type="checkbox" id="channel-telegram" />
-                    <label for="channel-telegram">ðŸ“± Telegram</label>
+                    <label for="channel-telegram">📱 Telegram</label>
 
                     <div v-if="telegramProfile" class="telegram-connected">
-                        âœ… ConnectÃ©: @{{ telegramProfile.username || telegramProfile.firstName }}
+                        ✅ Connecté: @{{ telegramProfile.username || telegramProfile.firstName }}
                         <button @click="disconnectTelegram" class="btn-secondary-small">
-                            DÃ©connecter
+                            Déconnecter
                         </button>
                     </div>
                     <div v-else class="telegram-not-connected">
@@ -115,7 +115,7 @@ async function savePreferences() {
         });
 
         if (response.ok) {
-            alert('PrÃ©fÃ©rences enregistrÃ©es!');
+            alert('Préférences enregistrées!');
         } else {
             alert('Erreur lors de l\'enregistrement');
         }
@@ -127,13 +127,13 @@ async function savePreferences() {
 
 function connectTelegram() {
     // Ouvrir une popup ou rediriger vers le bot Telegram
-    const botUsername = 'QrFeedbackBot'; // Remplacer par le vrai username du bot
+    const botUsername = 'Opinbasebot'; // Remplacer par le vrai username du bot
     const deepLink = `https://t.me/${botUsername}?start=${window.btoa(window.location.href)}`;
     window.open(deepLink, '_blank');
 }
 
 async function disconnectTelegram() {
-    if (!confirm('ÃŠtes-vous sÃ»r de vouloir dÃ©connecter Telegram?')) {
+    if (!confirm('Êtes-vous sûr de vouloir déconnecter Telegram?')) {
         return;
     }
 
@@ -146,12 +146,12 @@ async function disconnectTelegram() {
         if (response.ok) {
             telegramProfile.value = null;
             preferences.value.channels.telegram = false;
-            alert('Telegram dÃ©connectÃ©');
+            alert('Telegram déconnecté');
             await savePreferences();
         }
     } catch (error) {
         console.error('Failed to disconnect Telegram:', error);
-        alert('Erreur lors de la dÃ©connexion');
+        alert('Erreur lors de la déconnexion');
     }
 }
 </script>

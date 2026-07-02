@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { QrCode, MessageCircle, Send, Users, Bell, Lightbulb, ArrowRight, Zap, BookOpen } from 'lucide-vue-next';
 
-const COMMUNITY_LINK = 'https://t.me/QrFeedback_Bot';
-const BOT_LINK = 'https://t.me/QrFeedback_Bot';
+const COMMUNITY_LINK = 'https://t.me/Opinbasebot';
+const BOT_LINK = 'https://t.me/Opinbasebot';
 
 const benefits = [
   {
@@ -14,7 +14,7 @@ const benefits = [
   {
     icon: Lightbulb,
     title: 'Conseils & bonnes pratiques',
-    desc: "Apprenez comment d'autres entreprises utilisent QR Feedback pour améliorer leur réputation au quotidien.",
+    desc: "Apprenez comment d'autres entreprises utilisent Opinbase pour améliorer leur réputation au quotidien.",
     color: 'bg-amber-100 text-amber-700',
   },
   {
@@ -26,7 +26,7 @@ const benefits = [
   {
     icon: Zap,
     title: 'Support direct',
-    desc: "Accédez à une ligne directe avec l'équipe QR Feedback pour signaler des bugs ou suggérer des améliorations.",
+    desc: "Accédez à une ligne directe avec l'équipe Opinbase pour signaler des bugs ou suggérer des améliorations.",
     color: 'bg-brand-100 text-brand-700',
   },
   {
@@ -45,7 +45,7 @@ const benefits = [
 
 const steps = [
   { num: '1', title: 'Ouvrez Telegram', desc: "Téléchargez Telegram si ce n'est pas déjà fait, ou ouvrez l'application." },
-  { num: '2', title: "Rejoignez le groupe", desc: "Cliquez sur le bouton ci-dessous pour accéder directement au groupe de la communauté QR Feedback." },
+  { num: '2', title: "Rejoignez le groupe", desc: "Cliquez sur le bouton ci-dessous pour accéder directement au groupe de la communauté Opinbase." },
   { num: '3', title: 'Présentez-vous !', desc: "Dites bonjour, partagez votre activité et commencez à échanger avec les autres membres." },
 ];
 </script>
@@ -55,11 +55,8 @@ const steps = [
     <!-- Header -->
     <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <RouterLink to="/" class="flex items-center gap-3 text-xl font-black text-ink">
-          <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-700 text-white">
-            <QrCode :size="22" />
-          </span>
-          QR Feedback
+        <RouterLink to="/" class="flex items-center" aria-label="Opinbase">
+          <img :src="'/assets/logo_600_×_160.png'" alt="Opinbase" class="h-10 w-auto max-w-[160px] object-contain" />
         </RouterLink>
         <nav class="flex items-center gap-4 text-sm font-bold text-brand-700">
           <RouterLink to="/fonctionnalites" class="hidden sm:inline">Fonctionnalités</RouterLink>
@@ -119,7 +116,7 @@ const steps = [
             <p class="text-sm font-black uppercase tracking-widest text-sky-200">100 % sur Telegram</p>
             <h2 class="mt-3 text-4xl font-black text-white">Une communauté là où vous êtes déjà.</h2>
             <p class="mt-4 text-lg font-semibold leading-8 text-sky-100">
-              Pas d'app supplémentaire, pas de forum à part. La communauté QR Feedback vit sur Telegram — l'outil que vous utilisez déjà pour recevoir vos alertes d'avis en temps réel.
+              Pas d'app supplémentaire, pas de forum à part. La communauté Opinbase vit sur Telegram — l'outil que vous utilisez déjà pour recevoir vos alertes d'avis en temps réel.
             </p>
           </div>
           <div class="shrink-0">
@@ -188,9 +185,8 @@ const steps = [
     <!-- Footer -->
     <footer class="border-t border-slate-200 bg-white py-8">
       <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <RouterLink to="/" class="flex items-center gap-2 text-base font-black text-ink">
-          <span class="grid h-8 w-8 place-items-center rounded-full bg-brand-700 text-white"><QrCode :size="16" /></span>
-          QR Feedback
+        <RouterLink to="/" class="flex items-center" aria-label="Opinbase">
+          <img :src="'/assets/logo_600_×_160.png'" alt="Opinbase" class="h-8 w-auto max-w-[140px] object-contain" />
         </RouterLink>
         <div class="flex flex-wrap gap-5 text-sm font-bold text-slate-500">
           <RouterLink to="/" class="hover:text-brand-700">Accueil</RouterLink>
