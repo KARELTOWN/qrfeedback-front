@@ -5,7 +5,7 @@ import {
   SlidersHorizontal, FileText, TrendingUp, Target, Download, Layers
 } from 'lucide-vue-next';
 
-const BOT_LINK = 'https://t.me/QrFeedback_Bot';
+const BOT_LINK = 'https://t.me/Opinbasebot';
 
 const stats = [
   { value: 'Illimité', label: 'QR codes par entreprise' },
@@ -43,11 +43,8 @@ const allFeatures = [
     <!-- Header -->
     <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <RouterLink to="/" class="flex items-center gap-3 text-xl font-black text-ink">
-          <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-700 text-white">
-            <QrCode :size="22" />
-          </span>
-          QR Feedback
+        <RouterLink to="/" class="flex items-center" aria-label="Opinbase">
+          <img :src="'/assets/logo_600_×_160.png'" alt="Opinbase" class="h-10 w-auto max-w-[160px] object-contain" />
         </RouterLink>
         <nav class="flex items-center gap-4 text-sm font-bold text-brand-700">
           <RouterLink to="/fonctionnalites" class="hidden sm:inline">Fonctionnalités</RouterLink>
@@ -255,7 +252,7 @@ const allFeatures = [
               <Send :size="22" />
             </span>
             <h3 class="text-xl font-black text-ink">Telegram</h3>
-            <p class="mt-2 text-base font-semibold leading-7 text-slate-600">Notification instantanée sur votre téléphone via le bot @QrFeedback_Bot. Actions rapides intégrées.</p>
+            <p class="mt-2 text-base font-semibold leading-7 text-slate-600">Notification instantanée sur votre téléphone via le bot @Opinbasebot. Actions rapides intégrées.</p>
           </div>
           <div class="rounded-2xl border border-slate-200 bg-slate-50 p-7">
             <span class="mb-4 inline-grid h-12 w-12 place-items-center rounded-2xl bg-red-100 text-red-600">
@@ -367,9 +364,8 @@ const allFeatures = [
     <!-- Footer -->
     <footer class="border-t border-slate-200 bg-white py-8">
       <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <RouterLink to="/" class="flex items-center gap-2 text-base font-black text-ink">
-          <span class="grid h-8 w-8 place-items-center rounded-full bg-brand-700 text-white"><QrCode :size="16" /></span>
-          QR Feedback
+        <RouterLink to="/" class="flex items-center" aria-label="Opinbase">
+          <img :src="'/assets/logo_600_×_160.png'" alt="Opinbase" class="h-8 w-auto max-w-[140px] object-contain" />
         </RouterLink>
         <div class="flex flex-wrap gap-5 text-sm font-bold text-slate-500">
           <RouterLink to="/" class="hover:text-brand-700">Accueil</RouterLink>

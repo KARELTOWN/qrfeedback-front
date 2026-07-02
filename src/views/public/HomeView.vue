@@ -208,11 +208,8 @@ onBeforeUnmount(() => {
   <div class="min-h-screen bg-slate-100">
     <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <RouterLink to="/" class="flex items-center gap-3 text-xl font-black text-ink">
-          <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-700 text-white">
-            <QrCode :size="22" />
-          </span>
-          QR Feedback
+        <RouterLink to="/" class="flex items-center" aria-label="Opinbase">
+          <img :src="'/assets/logo_600_×_160.png'" alt="Opinbase" class="h-10 w-auto max-w-[160px] object-contain" />
         </RouterLink>
         <nav class="flex items-center gap-4 text-sm font-bold text-brand-700">
           <RouterLink to="/fonctionnalites" class="hidden sm:inline">Fonctionnalités</RouterLink>
@@ -232,11 +229,12 @@ onBeforeUnmount(() => {
 
     <main class="mx-auto grid max-w-7xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.05fr_0.95fr] lg:px-8 lg:py-16">
       <section class="flex flex-col justify-center">
-        <h1 class="max-w-3xl text-5xl font-black leading-[1.02] text-ink sm:text-6xl lg:text-7xl">
-          Collectez les avis clients avec un QR Code.
+        <h1 class="max-w-2xl text-4xl font-black leading-[1.08] text-ink sm:text-5xl lg:text-6xl">
+          Collectez les avis clients.
+          <span class="mt-2 block text-brand-700">Décidez plus vite.</span>
         </h1>
-        <p class="mt-8 max-w-2xl text-lg font-semibold leading-8 text-slate-600">
-          Obtenez chaque nouvel avis directement dans votre boîte mail. Aucun compte requis.
+        <p class="mt-6 max-w-xl text-base font-semibold leading-7 text-slate-600 sm:text-lg sm:leading-8">
+          Recevez chaque nouvel avis directement dans votre boîte mail et transformez les retours clients en actions concrètes.
         </p>
 
         <div class="mt-8 grid max-w-2xl gap-3 sm:grid-cols-2">

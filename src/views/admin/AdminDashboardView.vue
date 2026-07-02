@@ -14,7 +14,7 @@ const { stats } = ctx;
         Supervision
       </p>
       <h2 class="mt-3 text-3xl font-black text-ink">Vue plateforme</h2>
-      <p class="mt-2 max-w-2xl font-semibold leading-7 text-slate-600">Suivez l'usage global, les comptes et la collecte d'avis sur QR Feedback.</p>
+      <p class="mt-2 max-w-2xl font-semibold leading-7 text-slate-600">Suivez l'usage global, les comptes et la collecte d'avis sur Opinbase.</p>
     </header>
 
     <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
