@@ -120,7 +120,7 @@
     '<div class="qrf-backdrop" aria-hidden="true"></div>',
     '<section class="qrf-panel" role="dialog" aria-label="Formulaire de feedback">',
     '<div class="qrf-header"><span>Votre avis compte</span><button class="qrf-close" type="button" aria-label="Fermer">x</button></div>',
-    '<iframe title="QR Feedback" loading="lazy" allow="clipboard-write"></iframe>',
+    '<iframe title="Opinbase" loading="lazy" allow="clipboard-write"></iframe>',
     '</section>',
     '<button class="qrf-tab" type="button" aria-label="Ouvrir le feedback">',
     '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M7 8h10M7 12h6M21 12c0 4.418-4.03 8-9 8a10.6 10.6 0 0 1-4.2-.856L3 20l1.33-3.55A7.34 7.34 0 0 1 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',

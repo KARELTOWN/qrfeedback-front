@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Bell, BarChart3, Zap, MessageCircle, QrCode, ArrowRight, Send, Star, TrendingUp, FileText } from 'lucide-vue-next';
 
-const BOT_LINK = 'https://t.me/QrFeedback_Bot';
+const BOT_LINK = 'https://t.me/Opinbasebot';
 
 const features = [
   {
@@ -46,12 +46,12 @@ const steps = [
   {
     number: '01',
     title: 'Ouvrez le bot',
-    description: 'Cliquez sur le bouton ci-dessous pour ouvrir @QrFeedback_Bot sur Telegram.',
+    description: 'Cliquez sur le bouton ci-dessous pour ouvrir @Opinbasebot sur Telegram.',
   },
   {
     number: '02',
     title: 'Connectez votre compte',
-    description: 'Envoyez la commande /connect et suivez les instructions pour lier votre espace QR Feedback.',
+    description: 'Envoyez la commande /connect et suivez les instructions pour lier votre espace Opinbase.',
   },
   {
     number: '03',
@@ -66,7 +66,7 @@ const commands = [
   { cmd: '/my_qr_codes', label: 'Liste des QR codes' },
   { cmd: '/ai', label: 'Analyse IA' },
   { cmd: '/settings', label: 'Préférences de notification' },
-  { cmd: '/connect', label: 'Lier votre compte QR Feedback' },
+  { cmd: '/connect', label: 'Lier votre compte Opinbase' },
 ];
 </script>
 
@@ -75,11 +75,8 @@ const commands = [
     <!-- Header -->
     <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <RouterLink to="/" class="flex items-center gap-3 text-xl font-black text-ink">
-          <span class="grid h-10 w-10 place-items-center rounded-full bg-brand-700 text-white">
-            <QrCode :size="22" />
-          </span>
-          QR Feedback
+        <RouterLink to="/" class="flex items-center" aria-label="Opinbase">
+          <img :src="'/assets/logo_600_×_160.png'" alt="Opinbase" class="h-10 w-auto max-w-[160px] object-contain" />
         </RouterLink>
         <nav class="flex items-center gap-5 text-sm font-bold text-brand-700">
           <RouterLink to="/" class="hidden sm:inline">Accueil</RouterLink>
@@ -103,7 +100,7 @@ const commands = [
         <div>
           <span class="inline-flex items-center gap-2 rounded-full bg-brand-100 px-4 py-2 text-sm font-black text-brand-700">
             <MessageCircle :size="16" />
-            Bot Telegram officiel · @QrFeedback_Bot
+            Bot Telegram officiel · @Opinbasebot
           </span>
           <h1 class="mt-5 text-5xl font-black leading-[1.05] text-ink sm:text-6xl">
             Vos avis clients directement dans Telegram.
@@ -137,7 +134,7 @@ const commands = [
         <div class="w-full overflow-hidden rounded-3xl border border-slate-200 shadow-2xl shadow-slate-300/50">
           <img
             :src="'/bot/menu.png'"
-            alt="Menu principal du bot QR Feedback sur Telegram"
+            alt="Menu principal du bot Opinbase sur Telegram"
             class="w-full object-cover"
           />
         </div>
@@ -289,7 +286,7 @@ const commands = [
           <div class="w-full overflow-hidden rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/70">
             <img
               :src="'/bot/help.png'"
-              alt="Liste des commandes disponibles dans le bot QR Feedback"
+              alt="Liste des commandes disponibles dans le bot Opinbase"
               class="w-full object-cover"
             />
           </div>
@@ -356,7 +353,7 @@ const commands = [
             class="inline-flex items-center gap-2 rounded-2xl bg-white px-8 py-4 text-lg font-black text-brand-700 shadow-lg transition hover:bg-brand-50"
           >
             <Send :size="20" />
-            Ouvrir @QrFeedback_Bot
+            Ouvrir @Opinbasebot
             <ArrowRight :size="18" />
           </a>
         </div>
@@ -366,17 +363,14 @@ const commands = [
     <!-- Footer -->
     <footer class="border-t border-slate-200 bg-white py-8">
       <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
-        <RouterLink to="/" class="flex items-center gap-2 text-base font-black text-ink">
-          <span class="grid h-8 w-8 place-items-center rounded-full bg-brand-700 text-white">
-            <QrCode :size="16" />
-          </span>
-          QR Feedback
+        <RouterLink to="/" class="flex items-center" aria-label="Opinbase">
+          <img :src="'/assets/logo_600_×_160.png'" alt="Opinbase" class="h-8 w-auto max-w-[140px] object-contain" />
         </RouterLink>
         <div class="flex flex-wrap gap-5 text-sm font-bold text-slate-500">
           <RouterLink to="/" class="hover:text-brand-700">Accueil</RouterLink>
           <RouterLink to="/signup" class="hover:text-brand-700">Inscription</RouterLink>
           <RouterLink to="/login" class="hover:text-brand-700">Connexion</RouterLink>
-          <a :href="BOT_LINK" target="_blank" rel="noopener noreferrer" class="hover:text-brand-700">@QrFeedback_Bot</a>
+          <a :href="BOT_LINK" target="_blank" rel="noopener noreferrer" class="hover:text-brand-700">@Opinbasebot</a>
         </div>
       </div>
     </footer>
