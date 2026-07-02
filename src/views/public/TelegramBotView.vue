@@ -76,7 +76,7 @@ const commands = [
     <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <RouterLink to="/" class="flex items-center" aria-label="Opinbase">
-          <img :src="'/assets/logo_600_×_160.png'" alt="Opinbase" class="h-10 w-auto max-w-[160px] object-contain" />
+          <img :src="'/assets/logo-horizontal.png'" alt="Opinbase" class="h-10 w-auto max-w-[160px] object-contain" />
         </RouterLink>
         <nav class="flex items-center gap-5 text-sm font-bold text-brand-700">
           <RouterLink to="/" class="hidden sm:inline">Accueil</RouterLink>
@@ -364,7 +364,7 @@ const commands = [
     <footer class="border-t border-slate-200 bg-white py-8">
       <div class="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
         <RouterLink to="/" class="flex items-center" aria-label="Opinbase">
-          <img :src="'/assets/logo_600_×_160.png'" alt="Opinbase" class="h-8 w-auto max-w-[140px] object-contain" />
+          <img :src="'/assets/logo-horizontal.png'" alt="Opinbase" class="h-8 w-auto max-w-[140px] object-contain" />
         </RouterLink>
         <div class="flex flex-wrap gap-5 text-sm font-bold text-slate-500">
           <RouterLink to="/" class="hover:text-brand-700">Accueil</RouterLink>

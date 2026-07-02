@@ -17,7 +17,7 @@ defineEmits<{
   <aside class="hidden border-r border-slate-200 bg-white lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-[312px] lg:flex-col">
     <div class="px-5 py-5">
       <RouterLink to="/admin" class="flex items-center" aria-label="Opinbase">
-        <img :src="'/assets/logo_600_×_160.png'" alt="Opinbase" class="h-11 w-auto max-w-[180px] object-contain" />
+        <img :src="'/assets/logo-horizontal.png'" alt="Opinbase" class="h-11 w-auto max-w-[180px] object-contain" />
       </RouterLink>
     </div>
     <div class="mx-5 border-t border-slate-200 pt-7">

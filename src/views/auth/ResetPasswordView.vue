@@ -34,7 +34,7 @@ async function reset() {
     <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
       <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <RouterLink to="/" class="flex items-center" aria-label="Opinbase">
-          <img :src="'/assets/logo_600_×_160.png'" alt="Opinbase" class="h-10 w-auto max-w-[160px] object-contain" />
+          <img :src="'/assets/logo-horizontal.png'" alt="Opinbase" class="h-10 w-auto max-w-[160px] object-contain" />
         </RouterLink>
         <nav class="flex items-center gap-4 text-sm font-bold text-brand-700">
           <RouterLink to="/fonctionnalites" class="hidden sm:inline">Fonctionnalités</RouterLink>

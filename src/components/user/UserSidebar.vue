@@ -21,7 +21,7 @@ defineEmits<{
   <aside class="border-r border-slate-200 bg-white" :class="mode === 'desktop' ? 'hidden lg:fixed lg:inset-y-0 lg:left-0 lg:flex lg:w-[336px] lg:flex-col lg:overflow-hidden' : 'flex h-full w-[min(336px,86vw)] flex-col overflow-hidden'">
     <div class="px-5 py-5">
       <RouterLink to="/" class="flex items-center gap-3" aria-label="Opinbase" @click="$emit('navigate')">
-        <img :src="'/assets/logo_600_×_160.png'" alt="Opinbase" class="h-11 w-auto max-w-[180px] object-contain" />
+        <img :src="'/assets/logo-horizontal.png'" alt="Opinbase" class="h-11 w-auto max-w-[180px] object-contain" />
         <span class="rounded-full border border-slate-300 px-2 py-0.5 text-xs font-bold text-slate-500">Beta</span>
       </RouterLink>
     </div>
