@@ -16,18 +16,23 @@ import UserDashboardHomeView from './views/user/UserDashboardHomeView.vue';
 import UserReviewsView from './views/user/UserReviewsView.vue';
 import UserQrCodesView from './views/user/UserQrCodesView.vue';
 import UserAiAnalysisView from './views/user/UserAiAnalysisView.vue';
-import UserSettingsView from './views/user/UserSettingsView.vue';
+import UserAccountView from './views/user/UserAccountView.vue';
+import SettingsFormView from './views/user/settings/SettingsFormView.vue';
+import SettingsNotificationsView from './views/user/settings/SettingsNotificationsView.vue';
+import SettingsRedirectView from './views/user/settings/SettingsRedirectView.vue';
+import SettingsTestimonialsView from './views/user/settings/SettingsTestimonialsView.vue';
 import AdminDashboardView from './views/admin/AdminDashboardView.vue';
 import AdminUsersView from './views/admin/AdminUsersView.vue';
 import AdminQrRequestsView from './views/admin/AdminQrRequestsView.vue';
 import AdminInactiveUsersView from './views/admin/AdminInactiveUsersView.vue';
 import AdminNotificationTemplatesView from './views/admin/AdminNotificationTemplatesView.vue';
+import AdminAccountView from './views/admin/AdminAccountView.vue';
 import TelegramBotView from './views/public/TelegramBotView.vue';
 import FeaturesView from './views/public/FeaturesView.vue';
 import CommunityView from './views/public/CommunityView.vue';
 import { getToken } from './api';
 
-const adminTabs = ['dashboard', 'users', 'qr-requests', 'inactive', 'notification-templates'];
+const adminTabs = ['dashboard', 'users', 'qr-requests', 'inactive', 'notification-templates', 'account'];
 
 const router = createRouter({
   history: createWebHistory(),
@@ -47,7 +52,12 @@ const router = createRouter({
         { path: '/reviews', component: UserReviewsView },
         { path: '/qrcodes', component: UserQrCodesView },
         { path: '/ai', component: UserAiAnalysisView },
-        { path: '/settings', component: UserSettingsView }
+        { path: '/account', component: UserAccountView },
+        { path: '/settings', redirect: '/settings/formulaire' },
+        { path: '/settings/formulaire', component: SettingsFormView },
+        { path: '/settings/notifications', component: SettingsNotificationsView },
+        { path: '/settings/redirection', component: SettingsRedirectView },
+        { path: '/settings/temoignages', component: SettingsTestimonialsView }
       ]
     },    {
       path: '/admin',
@@ -60,13 +70,15 @@ const router = createRouter({
         { path: 'qr-requests', component: AdminQrRequestsView },
         { path: 'inactive', component: AdminInactiveUsersView }
         ,{ path: 'notification-templates', component: AdminNotificationTemplatesView }
+        ,{ path: 'account', component: AdminAccountView }
       ]
     },
     { path: '/admin/user/:userId', component: AdminUserDetailView, meta: { requiresAuth: true } },
     { path: '/reset-password', component: ResetPasswordView },
     { path: '/bot', component: TelegramBotView },
     { path: '/fonctionnalites', component: FeaturesView },
-    { path: '/communaute', component: CommunityView }
+    { path: '/communaute', component: CommunityView },
+    { path: '/:pathMatch(.*)*', redirect: '/' }
   ]
 });
 

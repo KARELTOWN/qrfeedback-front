@@ -32,6 +32,8 @@ const sent = ref(false);
 const error = ref('');
 const redirectUrl = ref<string | null>(null);
 const redirectCountdown = ref(0);
+const notFound = ref(false);
+const loadingCompany = ref(true);
 let redirectTimer: ReturnType<typeof setTimeout> | null = null;
 const customPhoneDialCodes = ref<Record<string, string>>({});
 const customPhoneLocalNumbers = ref<Record<string, string>>({});
@@ -51,7 +53,14 @@ const ratingOptions = computed(() => [
 ]);
 
 onMounted(async () => {
-  company.value = await getPublicCompany(route.params.slug);
+  try {
+    company.value = await getPublicCompany(route.params.slug);
+  } catch {
+    notFound.value = true;
+    loadingCompany.value = false;
+    return;
+  }
+  loadingCompany.value = false;
   trackScanQuietly();
   applyRememberedAnswers();
   await nextTick();
@@ -273,7 +282,19 @@ async function submit() {
         </div>
       </aside>
 
-      <form v-if="!sent" class="grid gap-6 p-5 sm:p-8 lg:p-10" :class="isEmbed ? 'gap-4 p-5 sm:p-6' : ''" @submit.prevent="submit">
+      <div v-if="loadingCompany" class="grid place-items-center p-8 text-center sm:p-12">
+        <p class="font-bold text-slate-400">Chargement...</p>
+      </div>
+
+      <div v-else-if="notFound" class="grid place-items-center p-8 text-center sm:p-12">
+        <div class="max-w-md">
+          <span class="mx-auto grid h-20 w-20 place-items-center rounded-full bg-slate-100 text-slate-500"><MessageSquareText :size="42" /></span>
+          <h1 class="mt-6 text-3xl font-black text-ink">Ce lien n'est plus disponible.</h1>
+          <p class="mt-3 text-lg font-semibold leading-8 text-slate-500">Ce QR code a été désactivé ou n'existe pas. Vous ne pouvez plus laisser d'avis via ce lien.</p>
+        </div>
+      </div>
+
+      <form v-else-if="!sent" class="grid gap-6 p-5 sm:p-8 lg:p-10" :class="isEmbed ? 'gap-4 p-5 sm:p-6' : ''" @submit.prevent="submit">
         <div>
           <h2 class="text-3xl font-black text-ink" :class="isEmbed ? 'text-2xl' : ''">{{ formConfig?.title || 'Comment s’est passée votre expérience ?' }}</h2>
           <p class="mt-2 font-semibold text-slate-500" :class="isEmbed ? 'text-sm' : ''">Nous lirons votre retour avec attention.</p>
@@ -334,7 +355,7 @@ async function submit() {
         <p v-if="error" class="rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{{ error }}</p>
       </form>
 
-      <div v-else class="grid place-items-center p-8 text-center sm:p-12">
+      <div v-else-if="sent" class="grid place-items-center p-8 text-center sm:p-12">
         <div class="max-w-md">
           <span class="mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald-100 text-emerald-700"><CheckCircle2 :size="42" /></span>
           <h1 class="mt-6 text-4xl font-black text-ink">Merci pour votre avis.</h1>

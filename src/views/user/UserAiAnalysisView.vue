@@ -85,7 +85,7 @@ const sentimentTrendBars = computed(() => {
   const gap = 10;
   const slot = chartWidth / trend.length;
   const barWidth = Math.max(18, slot - gap);
-  const maxBarHeight = 70;
+  const maxBarHeight = 120;
   return trend.map((bucket, index) => {
     const positiveHeight = (bucket.positiveRate / 100) * maxBarHeight;
     const neutralHeight = (bucket.neutralRate / 100) * maxBarHeight;
@@ -101,9 +101,9 @@ const sentimentTrendBars = computed(() => {
       rangeLabel: `${formatDate(bucket.startDate)} - ${formatDate(bucket.endDate)}`,
       startLabel: formatShortDateWithYear(bucket.startDate),
       endLabel: formatShortDateWithYear(bucket.endDate),
-      positive: { y: 80 - positiveHeight, height: positiveHeight },
-      neutral: { y: 80 - positiveHeight - neutralHeight, height: neutralHeight },
-      negative: { y: 80 - positiveHeight - neutralHeight - negativeHeight, height: negativeHeight }
+      positive: { y: 130 - positiveHeight, height: positiveHeight },
+      neutral: { y: 130 - positiveHeight - neutralHeight, height: neutralHeight },
+      negative: { y: 130 - positiveHeight - neutralHeight - negativeHeight, height: negativeHeight }
     };
   });
 });
@@ -289,11 +289,11 @@ function groupX(index: number) {
 }
 
 function barHeight(percent: number) {
-  return (Math.min(100, Math.max(0, percent)) / 100) * 140;
+  return (Math.min(100, Math.max(0, percent)) / 100) * 200;
 }
 
 function barY(percent: number) {
-  return 180 - barHeight(percent);
+  return 240 - barHeight(percent);
 }
 
 function metricDelta(metric: { currentValue: number; previousValue: number }) {
@@ -520,7 +520,7 @@ watch(() => [route.query.startDate, route.query.endDate, route.query.qrCodeId], 
       <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <p class="text-sm font-black uppercase text-slate-500">Note moyenne</p>
         <strong class="mt-2 block text-3xl font-black text-ink">{{ averageRating }}/5</strong>
-        <span class="mt-1 block text-sm font-bold" :class="scoreEvolution.className">{{ scoreEvolution.label }} vs {{ previousPeriodLabel }}</span>
+        <span class="mt-1 block text-sm font-bold" :class="scoreEvolution.className">{{ scoreEvolution.label }} par rapport à la période {{ previousPeriodLabel }}</span>
       </article>
       <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <p class="text-sm font-black uppercase text-slate-500">Clients contents</p>
@@ -559,14 +559,14 @@ watch(() => [route.query.startDate, route.query.endDate, route.query.qrCodeId], 
         </div>
       </div>
 
-      <svg v-if="comparisonMetrics.length" viewBox="0 0 600 220" class="h-56 w-full overflow-visible">
-        <line x1="20" y1="180" x2="580" y2="180" stroke="#e2e8f0" />
+      <svg v-if="comparisonMetrics.length" viewBox="0 0 600 280" class="h-80 w-full overflow-visible">
+        <line x1="20" y1="240" x2="580" y2="240" stroke="#e2e8f0" />
         <g v-for="(metric, index) in comparisonMetrics" :key="metric.key">
           <rect :x="groupX(index)" :y="barY(metric.currentPercent)" width="50" :height="barHeight(metric.currentPercent)" rx="6" fill="#0f766e" />
           <rect :x="groupX(index) + 60" :y="barY(metric.previousPercent)" width="50" :height="barHeight(metric.previousPercent)" rx="6" fill="#f59e0b" />
           <text :x="groupX(index) + 25" :y="barY(metric.currentPercent) - 8" text-anchor="middle" class="fill-ink text-xs font-black">{{ metric.format(metric.currentValue) }}</text>
           <text :x="groupX(index) + 85" :y="barY(metric.previousPercent) - 8" text-anchor="middle" class="fill-ink text-xs font-black">{{ metric.format(metric.previousValue) }}</text>
-          <text :x="groupX(index) + 55" y="202" text-anchor="middle" class="fill-slate-500 text-xs font-bold">{{ metric.label }}</text>
+          <text :x="groupX(index) + 55" y="262" text-anchor="middle" class="fill-slate-500 text-xs font-bold">{{ metric.label }}</text>
         </g>
       </svg>
 
@@ -582,7 +582,7 @@ watch(() => [route.query.startDate, route.query.endDate, route.query.qrCodeId], 
       </div>
     </section>
 
-    <section class="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+    <section class="grid gap-4">
       <AiRecommendationCard
         :recommendation="recommendation"
         :loading="recommendationsLoading"
@@ -605,7 +605,7 @@ watch(() => [route.query.startDate, route.query.endDate, route.query.qrCodeId], 
 
         <div v-if="totalReviews">
           <div class="flex flex-col items-center gap-5 sm:flex-row">
-            <svg viewBox="0 0 160 160" class="h-40 w-40 shrink-0">
+            <svg viewBox="0 0 160 160" class="h-48 w-48 shrink-0">
               <g transform="translate(80,80) rotate(-90)">
                 <circle r="64" fill="none" stroke="#e2e8f0" stroke-width="22" />
                 <circle
@@ -646,15 +646,15 @@ watch(() => [route.query.startDate, route.query.endDate, route.query.qrCodeId], 
               </div>
             </div>
             <div class="relative mt-3">
-              <svg viewBox="0 0 480 108" class="h-28 w-full overflow-visible">
-                <line x1="0" y1="80" x2="480" y2="80" stroke="#e2e8f0" />
+              <svg viewBox="0 0 480 185" class="h-52 w-full overflow-visible">
+                <line x1="0" y1="130" x2="480" y2="130" stroke="#e2e8f0" />
                 <g v-for="(bar, index) in sentimentTrendBars" :key="bar.key" class="cursor-pointer" @mouseenter="hoveredSentimentBucket = index" @mouseleave="hoveredSentimentBucket = null">
-                  <rect :x="bar.x - 3" y="0" :width="bar.width + 6" height="80" fill="transparent" />
+                  <rect :x="bar.x - 3" y="0" :width="bar.width + 6" height="130" fill="transparent" />
                   <rect :x="bar.x" :y="bar.positive.y" :width="bar.width" :height="bar.positive.height" fill="#059669" :opacity="hoveredSentimentBucket === null || hoveredSentimentBucket === index ? 1 : 0.35" />
                   <rect :x="bar.x" :y="bar.neutral.y" :width="bar.width" :height="bar.neutral.height" fill="#f59e0b" :opacity="hoveredSentimentBucket === null || hoveredSentimentBucket === index ? 1 : 0.35" />
                   <rect :x="bar.x" :y="bar.negative.y" :width="bar.width" :height="bar.negative.height" fill="#e11d48" :opacity="hoveredSentimentBucket === null || hoveredSentimentBucket === index ? 1 : 0.35" />
-                  <text :x="bar.x + bar.width / 2" y="91" text-anchor="middle" class="fill-slate-500 text-[8px] font-bold">{{ bar.startLabel }}</text>
-                  <text :x="bar.x + bar.width / 2" y="101" text-anchor="middle" class="fill-slate-400 text-[8px] font-bold">{{ bar.endLabel }}</text>
+                  <text :x="bar.x + bar.width / 2" y="152" text-anchor="middle" font-size="11" font-weight="700" fill="#334155">{{ bar.startLabel }}</text>
+                  <text :x="bar.x + bar.width / 2" y="169" text-anchor="middle" font-size="11" font-weight="700" fill="#475569">{{ bar.endLabel }}</text>
                 </g>
               </svg>
               <div

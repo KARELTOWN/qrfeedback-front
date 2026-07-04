@@ -14,6 +14,7 @@ export type AdminUser = {
   isActive: boolean;
   emailVerified: boolean;
   mustChangePassword: boolean;
+  lastLoginAt?: string | null;
   createdAt: string;
   company?: {
     _id?: string;
@@ -50,15 +51,18 @@ export type PaginationMeta = {
   totalPages: number;
 };
 
+export type AdminAccountStatus = 'active' | 'inactive' | 'disabled' | 'none';
+
 export type QrRequestsWithoutAccount = {
   total: number;
   companies: Array<{
-    _id: string;
     name: string;
     email: string;
-    feedbackUrl: string;
-    hasAccount: boolean;
+    qrRequestsCount: number;
     userId?: string;
+    isActive: boolean;
+    lastLoginAt: string | null;
+    status: AdminAccountStatus;
     createdAt: string;
   }>;
   pagination: PaginationMeta;
@@ -73,6 +77,7 @@ export type AdminUserDetails = {
   };
   qrCodesCount: number;
   reviewsCount: number;
+  scanCount: number;
   remainingCredits: number;
   revenueFcfa: number;
   payments: AdminTransaction[];

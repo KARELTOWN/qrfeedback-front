@@ -207,11 +207,11 @@ onBeforeUnmount(() => {
 <template>
   <div class="min-h-screen bg-slate-100">
     <header class="sticky top-0 z-20 border-b border-slate-200 bg-white/95 backdrop-blur">
-      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <div class="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 sm:py-4 lg:px-8">
         <RouterLink to="/" class="flex items-center" aria-label="Opinbase">
-          <img :src="'/assets/logo-horizontal.png'" alt="Opinbase" class="h-10 w-auto max-w-[160px] object-contain" />
+          <img :src="'/assets/logo-horizontal.png'" alt="Opinbase" class="h-8 w-auto max-w-[130px] object-contain sm:h-10 sm:max-w-[160px]" />
         </RouterLink>
-        <nav class="flex items-center gap-4 text-sm font-bold text-brand-700">
+        <nav class="flex items-center gap-2 text-xs font-bold text-brand-700 sm:gap-4 sm:text-sm">
           <RouterLink to="/fonctionnalites" class="hidden sm:inline">Fonctionnalités</RouterLink>
           <RouterLink to="/communaute" class="hidden sm:inline">Communauté</RouterLink>
           <RouterLink
@@ -221,8 +221,8 @@ onBeforeUnmount(() => {
             <MessageCircle :size="15" />
             Bot Telegram
           </RouterLink>
-          <RouterLink to="/login">Connexion</RouterLink>
-          <RouterLink to="/signup">Créer un compte</RouterLink>
+          <RouterLink to="/login" class="rounded-lg px-2 py-1.5 sm:px-0 sm:py-0">Connexion</RouterLink>
+          <RouterLink to="/signup" class="rounded-lg bg-brand-700 px-2.5 py-1.5 text-white sm:bg-transparent sm:px-0 sm:py-0 sm:text-brand-700">Créer un compte</RouterLink>
         </nav>
       </div>
     </header>
@@ -238,7 +238,7 @@ onBeforeUnmount(() => {
         </p>
 
         <div class="mt-8 grid max-w-2xl gap-3 sm:grid-cols-2">
-          <div class="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+          <div class="flex items-center justify-center gap-4 rounded-xl border border-slate-200 bg-white px-4 py-4 text-center shadow-sm sm:justify-start sm:text-left">
             <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-brand-100 text-brand-700">
               <Building2 :size="21" />
             </span>
@@ -247,7 +247,7 @@ onBeforeUnmount(() => {
               <span class="mt-1 block text-sm font-black text-slate-500">Entreprises ont généré un QR CODE</span>
             </span>
           </div>
-          <div class="flex items-center gap-4 rounded-xl border border-slate-200 bg-white px-4 py-4 shadow-sm">
+          <div class="flex items-center justify-center gap-4 rounded-xl border border-slate-200 bg-white px-4 py-4 text-center shadow-sm sm:justify-start sm:text-left">
             <span class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-amber-100 text-amber-700">
               <MessageCircle :size="21" />
             </span>

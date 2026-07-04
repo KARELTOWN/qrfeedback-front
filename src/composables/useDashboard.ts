@@ -66,6 +66,11 @@ export type NotificationPreferences = {
   smsEnabled?: boolean;
   managerPhone?: string | null;
   badReviewThreshold?: number;
+  autoReplyEnabled?: boolean;
+  autoReplyMode?: 'ai' | 'manual';
+  autoReplySatisfiedThreshold?: number;
+  autoReplySatisfiedMessage?: string;
+  autoReplyUnsatisfiedMessage?: string;
 };
 
 export type ReviewRedirectConfig = {

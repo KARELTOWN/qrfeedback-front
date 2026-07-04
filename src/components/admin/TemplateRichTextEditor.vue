@@ -13,6 +13,7 @@ onMounted(() => {
   if (!element.value) return;
   editor = SUNEDITOR.create(element.value, {
     height: '300px',
+    width: '100%',
     placeholder: props.placeholder || 'Rédigez le contenu du modèle…',
     buttonList: [['undo', 'redo'], ['formatBlock', 'fontSize'], ['bold', 'underline', 'italic'], ['fontColor', 'hiliteColor'], ['align', 'list'], ['link', 'image'], ['removeFormat'], ['codeView']],
   });
@@ -32,4 +33,8 @@ defineExpose({ insertText });
 onBeforeUnmount(() => editor?.destroy());
 </script>
 
-<template><textarea ref="element" /></template>
+<template>
+  <div class="w-full">
+    <textarea ref="element" class="w-full" />
+  </div>
+</template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
-import { Archive, CalendarDays, ChevronLeft, Copy, Download, Eye, Loader2, Mail, MessageSquareText, Phone, Search, Sparkles, Star, Tag, User, X } from 'lucide-vue-next';
+import { Archive, CalendarDays, ChevronLeft, Download, Eye, Loader2, Mail, MessageSquareText, Phone, Quote, Search, Star, Tag, User, X } from 'lucide-vue-next';
 import { VueDatePicker } from '@vuepic/vue-datepicker';
 import '@vuepic/vue-datepicker/dist/main.css';
 import BasePagination from '../../components/shared/BasePagination.vue';
@@ -10,14 +10,13 @@ type ContactSelection = { type: 'email' | 'phone' | 'fullName'; value: string; l
 type ReviewSearchFilters = {
   query: string;
   rating: number | '';
-  sentiment: 'positive' | 'neutral' | 'negative' | '';
   qrCodeId: string;
   moderationStatus: string;
   channel: 'email' | 'telegram' | '';
   dateRange: string[] | null;
 };
 
-const { getReviews, getQrCodes, updateReviewModeration, exportReviewsCsv, suggestReviewReply } = useDashboard();
+const { getReviews, getQrCodes, updateReviewModeration, exportReviewsCsv } = useDashboard();
 const emptyPagination: PaginationMeta = { total: 0, page: 1, limit: 10, totalPages: 1 };
 const reviews = ref<Review[]>([]);
 const reviewPagination = ref<PaginationMeta>(emptyPagination);
@@ -29,15 +28,11 @@ const contactReviews = ref<Review[]>([]);
 const contactPagination = ref<PaginationMeta>(emptyPagination);
 const contactReviewPage = ref(1);
 const contactPageSize = 9;
-const reviewFilters = ref<ReviewSearchFilters>({ query: '', rating: '', sentiment: '', qrCodeId: '', moderationStatus: '', channel: '', dateRange: null });
+const reviewFilters = ref<ReviewSearchFilters>({ query: '', rating: '', qrCodeId: '', moderationStatus: '', channel: '', dateRange: null });
 const reviewSearchEngine = ref('');
 const reviewsLoading = ref(false);
 const qrCodes = ref<CompanyQrCode[]>([]);
 const moderationDraft = ref({ moderationStatus: 'published' as Review['moderationStatus'], tags: '', internalNote: '' });
-const aiSuggestions = ref<string[]>([]);
-const aiSuggestionsLoading = ref(false);
-const aiSuggestionsError = ref('');
-const copiedIndex = ref<number | null>(null);
 let reviewSearchDebounce: ReturnType<typeof setTimeout> | undefined;
 
 const reviewTotalPages = computed(() => reviewPagination.value.totalPages);
@@ -63,7 +58,6 @@ function activeReviewFilters() {
   return {
     query: reviewFilters.value.query,
     rating: reviewFilters.value.rating,
-    sentiment: reviewFilters.value.sentiment,
     qrCodeId: reviewFilters.value.qrCodeId,
     moderationStatus: reviewFilters.value.moderationStatus,
     channel: reviewFilters.value.channel,
@@ -92,6 +86,12 @@ function ratingClass(rating: number) {
   if (rating >= 4) return 'bg-emerald-50 text-emerald-700 ring-emerald-100';
   if (rating === 3) return 'bg-amber-50 text-amber-700 ring-amber-100';
   return 'bg-rose-50 text-rose-700 ring-rose-100';
+}
+
+function sentimentTheme(rating: number) {
+  if (rating >= 4) return { border: 'border-emerald-100', dot: 'bg-emerald-500', text: 'text-emerald-700', tint: 'text-emerald-500', star: 'text-emerald-500' };
+  if (rating === 3) return { border: 'border-amber-100', dot: 'bg-amber-500', text: 'text-amber-700', tint: 'text-amber-500', star: 'text-amber-500' };
+  return { border: 'border-rose-100', dot: 'bg-rose-500', text: 'text-rose-700', tint: 'text-rose-500', star: 'text-rose-500' };
 }
 
 function sentimentLabel(rating: number) {
@@ -188,29 +188,6 @@ function openReview(review: Review) {
     tags: (review.tags || []).join(', '),
     internalNote: review.internalNote || ''
   };
-  aiSuggestions.value = [];
-  aiSuggestionsError.value = '';
-  copiedIndex.value = null;
-}
-
-async function loadAiSuggestions() {
-  if (!selectedReview.value || aiSuggestionsLoading.value) return;
-  aiSuggestionsLoading.value = true;
-  aiSuggestionsError.value = '';
-  try {
-    const result = await suggestReviewReply(selectedReview.value._id);
-    aiSuggestions.value = result.suggestions;
-  } catch (err) {
-    aiSuggestionsError.value = err instanceof Error ? err.message : 'Erreur lors de la génération.';
-  } finally {
-    aiSuggestionsLoading.value = false;
-  }
-}
-
-async function copySuggestion(text: string, index: number) {
-  await navigator.clipboard.writeText(text).catch(() => {});
-  copiedIndex.value = index;
-  setTimeout(() => { copiedIndex.value = null; }, 2000);
 }
 
 async function saveModeration() {
@@ -242,7 +219,7 @@ watch(() => reviewFilters.value.query, () => {
 });
 
 watch(
-  [() => reviewFilters.value.rating, () => reviewFilters.value.sentiment, () => reviewFilters.value.qrCodeId, () => reviewFilters.value.moderationStatus, () => reviewFilters.value.channel, () => reviewFilters.value.dateRange],
+  [() => reviewFilters.value.rating, () => reviewFilters.value.qrCodeId, () => reviewFilters.value.moderationStatus, () => reviewFilters.value.channel, () => reviewFilters.value.dateRange],
   () => {
     applyReviewFilters();
   },
@@ -276,7 +253,7 @@ onBeforeUnmount(() => {
           </button>
         </div>
 
-        <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_130px_150px_180px_150px_minmax(260px,1fr)]">
+        <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-[minmax(220px,1fr)_130px_180px_150px_minmax(260px,1fr)]">
           <label class="grid gap-1">
             <span class="px-1 text-xs font-black uppercase text-slate-500">Recherche</span>
             <div class="relative">
@@ -288,10 +265,6 @@ onBeforeUnmount(() => {
           <label class="grid gap-1">
             <span class="px-1 text-xs font-black uppercase text-slate-500">Note</span>
             <select v-model="reviewFilters.rating" class="h-11 rounded-xl border border-slate-300 bg-white px-3 font-bold outline-none focus:border-brand-700"><option value="">Toutes</option><option v-for="rating in [1, 2, 3, 4, 5]" :key="rating" :value="rating">{{ rating }}/5</option></select>
-          </label>
-          <label class="grid gap-1">
-            <span class="px-1 text-xs font-black uppercase text-slate-500">Sentiment</span>
-            <select v-model="reviewFilters.sentiment" class="h-11 rounded-xl border border-slate-300 bg-white px-3 font-bold outline-none focus:border-brand-700"><option value="">Tous</option><option value="positive">Content</option><option value="neutral">Neutre</option><option value="negative">Mécontent</option></select>
           </label>
           <label class="grid gap-1">
             <span class="px-1 text-xs font-black uppercase text-slate-500">QR code</span>
@@ -327,43 +300,57 @@ onBeforeUnmount(() => {
         </article>
       </section>
 
-      <section class="relative grid gap-4 xl:grid-cols-2">
+      <section class="relative grid gap-x-4 gap-y-4 sm:grid-cols-2">
         <div v-if="reviewsLoading" class="absolute inset-0 z-10 grid place-items-center rounded-3xl bg-white/60">
           <Loader2 class="animate-spin text-brand-700" :size="32" />
         </div>
-        <article v-for="review in reviews" :key="review._id" class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-brand-100 hover:shadow-md">
-          <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-            <div class="min-w-0 flex-1">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-black ring-1" :class="ratingClass(review.rating)">
-                  <Star :size="15" />
-                  {{ review.rating }}/5 · {{ sentimentLabel(review.rating) }}
-                </span>
-                <span class="rounded-full px-3 py-1 text-sm font-black ring-1" :class="reviewStatusClass(review.moderationStatus)">{{ reviewStatusLabel(review.moderationStatus) }}</span>
-                <span class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-sm font-black text-slate-700">
-                  <CalendarDays :size="14" />
-                  {{ formatDate(review.createdAt) }}
-                </span>
-              </div>
+        <article v-for="review in reviews" :key="review._id" class="relative mt-2">
+          <div class="hang-pin absolute -top-2 left-9 flex flex-col items-center">
+            <span class="h-2 w-px bg-slate-300"></span>
+            <span class="grid h-4 w-4 place-items-center rounded-full ring-4 ring-slate-100" :class="sentimentTheme(review.rating).dot"></span>
+          </div>
 
-              <p class="mt-2 line-clamp-3 text-base font-semibold leading-7 text-slate-700">{{ review.serviceFeedback || '' }}</p>
+          <div class="relative overflow-hidden rounded-[26px] border bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-lg" :class="sentimentTheme(review.rating).border">
+            <Quote class="pointer-events-none absolute -left-3 -top-3 opacity-[0.08]" :size="88" :class="sentimentTheme(review.rating).tint" />
 
-              <div v-if="contactAnswers(review).length" class="mt-4 flex flex-wrap gap-2">
-                <button v-for="answer in contactAnswers(review)" :key="answer.questionId" class="inline-flex max-w-full items-center gap-2 rounded-full bg-brand-50 px-3 py-1.5 text-sm font-black text-brand-700 transition hover:bg-brand-100" @click="openContactReviews(answer)">
-                  <component :is="contactIcon(answer.type)" :size="15" />
-                  <span class="truncate">{{ answer.value }}</span>
-                </button>
+            <div class="relative flex flex-wrap items-center justify-between gap-2">
+              <div class="flex items-center gap-1.5">
+                <div class="flex items-center gap-0.5">
+                  <Star v-for="n in 5" :key="n" :size="16" :class="n <= review.rating ? sentimentTheme(review.rating).star : 'text-slate-200'" :fill="n <= review.rating ? 'currentColor' : 'none'" />
+                </div>
+                <span class="text-sm font-black" :class="sentimentTheme(review.rating).text">{{ review.rating }}/5</span>
               </div>
-
-              <div v-if="review.tags?.length" class="mt-4 flex flex-wrap gap-2">
-                <span v-for="tag in review.tags" :key="tag" class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-sm font-black text-slate-700">
-                  <Tag :size="14" />
-                  {{ tag }}
-                </span>
-              </div>
+              <span class="rounded-full px-3 py-1 text-xs font-black ring-1" :class="reviewStatusClass(review.moderationStatus)">{{ reviewStatusLabel(review.moderationStatus) }}</span>
             </div>
 
-            <div class="flex shrink-0 flex-row gap-1.5 lg:flex-col">
+            <p class="relative mt-2.5 line-clamp-4 text-base font-bold leading-7 text-ink">{{ review.serviceFeedback || 'Aucun commentaire laissé.' }}</p>
+
+            <div class="relative mt-2.5 flex flex-wrap items-center justify-between gap-2">
+              <span class="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wide" :class="sentimentTheme(review.rating).text">
+                <span class="h-1.5 w-1.5 rounded-full" :class="sentimentTheme(review.rating).dot"></span>
+                {{ sentimentLabel(review.rating) }}
+              </span>
+              <span class="inline-flex items-center gap-1 text-xs font-bold text-slate-400">
+                <CalendarDays :size="13" />
+                {{ formatDate(review.createdAt) }}
+              </span>
+            </div>
+
+            <div v-if="contactAnswers(review).length" class="relative mt-3 flex flex-wrap gap-2">
+              <button v-for="answer in contactAnswers(review)" :key="answer.questionId" class="inline-flex max-w-full items-center gap-2 rounded-full bg-brand-50 px-3 py-1.5 text-sm font-black text-brand-700 transition hover:bg-brand-100" @click="openContactReviews(answer)">
+                <component :is="contactIcon(answer.type)" :size="15" />
+                <span class="truncate">{{ answer.value }}</span>
+              </button>
+            </div>
+
+            <div v-if="review.tags?.length" class="relative mt-3 flex flex-wrap gap-2">
+              <span v-for="tag in review.tags" :key="tag" class="inline-flex items-center gap-1 rounded-full bg-slate-100 px-3 py-1 text-sm font-black text-slate-700">
+                <Tag :size="14" />
+                {{ tag }}
+              </span>
+            </div>
+
+            <div class="relative mt-3 flex justify-end gap-2 border-t border-slate-100 pt-3">
               <div class="group relative">
                 <button class="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 text-slate-500 transition hover:border-brand-200 hover:bg-brand-50 hover:text-brand-700" aria-label="Voir le détail" @click="openReview(review)">
                   <Eye :size="16" />
@@ -384,7 +371,7 @@ onBeforeUnmount(() => {
           </div>
         </article>
 
-        <div v-if="!reviewsLoading && !reviews.length" class="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center">
+        <div v-if="!reviewsLoading && !reviews.length" class="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center sm:col-span-2">
           <strong class="block text-xl font-black text-ink">Aucun avis trouvé.</strong>
           <span class="mt-2 block font-semibold text-slate-500">Essayez un autre filtre ou attendez les prochains scans QR.</span>
         </div>
@@ -479,49 +466,6 @@ onBeforeUnmount(() => {
           </div>
         </div>
 
-        <!-- IA : suggestions de réponse -->
-        <div class="mt-5 rounded-2xl border border-brand-100 bg-brand-50/40 p-4">
-          <div class="flex items-center justify-between gap-3">
-            <div class="flex items-center gap-2">
-              <Sparkles :size="18" class="text-brand-700" />
-              <span class="font-black text-ink">Suggestions de réponse IA</span>
-            </div>
-            <button
-              class="inline-flex h-9 items-center gap-2 rounded-xl bg-brand-700 px-4 text-sm font-black text-white transition hover:bg-brand-600 disabled:opacity-50"
-              :disabled="aiSuggestionsLoading"
-              @click="loadAiSuggestions"
-            >
-              <Loader2 v-if="aiSuggestionsLoading" :size="15" class="animate-spin" />
-              <Sparkles v-else :size="15" />
-              {{ aiSuggestions.length ? 'Régénérer' : 'Générer' }}
-            </button>
-          </div>
-
-          <p v-if="aiSuggestionsError" class="mt-3 rounded-xl bg-red-50 px-3 py-2 text-sm font-bold text-red-600">{{ aiSuggestionsError }}</p>
-
-          <div v-if="aiSuggestions.length" class="mt-4 grid gap-3">
-            <div
-              v-for="(suggestion, i) in aiSuggestions"
-              :key="i"
-              class="rounded-2xl border border-brand-100 bg-white p-4"
-            >
-              <p class="text-sm font-semibold leading-6 text-slate-700">{{ suggestion }}</p>
-              <button
-                class="mt-3 inline-flex h-8 items-center gap-2 rounded-lg px-3 text-xs font-black transition"
-                :class="copiedIndex === i ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-600 hover:bg-brand-50 hover:text-brand-700'"
-                @click="copySuggestion(suggestion, i)"
-              >
-                <Copy v-if="copiedIndex !== i" :size="13" />
-                <span v-if="copiedIndex !== i">Copier</span>
-                <span v-else>✓ Copié</span>
-              </button>
-            </div>
-          </div>
-
-          <p v-else-if="!aiSuggestionsLoading" class="mt-3 text-sm font-semibold text-slate-400">
-            Cliquez sur "Générer" pour obtenir 3 suggestions personnalisées selon le ton de l'avis.
-          </p>
-        </div>
 
         <div class="mt-5 grid gap-4 rounded-2xl border border-slate-200 bg-slate-50 p-4">
           <label class="grid gap-1">

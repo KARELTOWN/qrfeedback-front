@@ -1,14 +1,14 @@
 ﻿<script setup lang="ts">
 import { computed, onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { Bot, Home, MessageSquareText, QrCode, Settings } from 'lucide-vue-next';
+import { Bot, Home, MessageSquareText, QrCode, Settings, UserCircle } from 'lucide-vue-next';
 import { useAuth } from '../../composables/useAuth';
 import { useDashboard, type DashboardStats } from '../../composables/useDashboard';
 import ToastHost from '../../components/shared/ToastHost.vue';
 import UserPageHeader from '../../components/user/UserPageHeader.vue';
-import UserSidebar from '../../components/user/UserSidebar.vue';
+import UserSidebar, { type NavEntry } from '../../components/user/UserSidebar.vue';
 
-type DashboardRoute = 'dashboard' | 'reviews' | 'qrcodes' | 'ai' | 'settings';
+type DashboardRoute = 'dashboard' | 'reviews' | 'qrcodes' | 'ai' | 'account' | 'formulaire' | 'notifications' | 'redirection' | 'temoignages';
 
 const route = useRoute();
 const { logout: clearSession } = useAuth();
@@ -19,20 +19,33 @@ const error = ref('');
 const pageRefreshKey = ref(0);
 const mobileMenuOpen = ref(false);
 
-const navItems: Array<{ key: DashboardRoute; label: string; icon: typeof Home; to: string }> = [
+const navItems: NavEntry[] = [
   { key: 'dashboard', label: 'Tableau de bord', icon: Home, to: '/dashboard' },
   { key: 'reviews', label: 'Avis clients', icon: MessageSquareText, to: '/reviews' },
   { key: 'qrcodes', label: 'QR Code', icon: QrCode, to: '/qrcodes' },
   { key: 'ai', label: 'Analyse IA', icon: Bot, to: '/ai' },
-  { key: 'settings', label: 'Réglages', icon: Settings, to: '/settings' }
+  { key: 'account', label: 'Mon compte', icon: UserCircle, to: '/account' },
+  {
+    key: 'settings',
+    label: 'Réglages',
+    icon: Settings,
+    children: [
+      { key: 'formulaire', label: 'Formulaire', to: '/settings/formulaire' },
+      { key: 'notifications', label: 'Notifications', to: '/settings/notifications' },
+      { key: 'redirection', label: 'Redirection avis', to: '/settings/redirection' },
+      { key: 'temoignages', label: 'Widget témoignages', to: '/settings/temoignages' }
+    ]
+  }
 ];
+
+const flatNavItems = computed(() => navItems.flatMap((item) => 'children' in item ? item.children : [item]));
 
 const activePage = computed(() => {
   const segment = route.path.split('/').filter(Boolean).pop();
-  return navItems.some((item) => item.key === segment) ? segment as DashboardRoute : 'dashboard';
+  return flatNavItems.value.some((item) => item.key === segment) ? segment as DashboardRoute : 'dashboard';
 });
 
-const pageTitle = computed(() => navItems.find((item) => item.key === activePage.value)?.label || 'Tableau de bord');
+const pageTitle = computed(() => flatNavItems.value.find((item) => item.key === activePage.value)?.label || 'Tableau de bord');
 
 async function loadShell() {
   error.value = '';

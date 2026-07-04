@@ -48,8 +48,7 @@ function normalizeQuestionOptions(question: CustomQuestionConfig) {
 <template>
   <div v-if="config" class="rounded-3xl border border-slate-200 bg-slate-50 p-6">
     <div class="mb-6">
-      <h2 class="text-2xl font-black text-ink">Formulaire de feedback</h2>
-      <p class="mt-1 font-semibold text-slate-500">Personnalisez les libellés et ajoutez quelques questions simples.</p>
+      <h2 class="text-2xl font-black text-ink">Formulaire de récupération des avis</h2>
     </div>
 
     <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -64,11 +63,11 @@ function normalizeQuestionOptions(question: CustomQuestionConfig) {
     </div></section>
 
     <section class="mt-5 grid gap-3 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-      <div><h3 class="font-black text-ink">Champ commentaire</h3><p class="text-sm font-semibold text-slate-500">Zone de texte libre affichée sous la note.</p></div>
+      <div><h3 class="font-black text-ink">Champ de rédaction d'avis</h3></div>
       <article v-for="field in visibleFields" :key="field.key" class="grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 lg:grid-cols-[auto_1fr_1fr_auto] lg:items-center">
         <label class="flex items-center gap-2 font-black text-ink"><input v-model="field.enabled" type="checkbox" class="h-5 w-5" /> Actif</label>
         <input v-model="field.label" class="h-11 rounded-xl border border-slate-300 px-3 font-semibold outline-none focus:border-brand-700" />
-        <input v-model="field.placeholder" placeholder="Texte indicatif" class="h-11 rounded-xl border border-slate-300 px-3 font-semibold outline-none focus:border-brand-700" />
+        <input v-model="field.placeholder" placeholder="Texte d'aide" class="h-11 rounded-xl border border-slate-300 px-3 font-semibold outline-none focus:border-brand-700" />
         <label class="flex items-center gap-2 font-black text-ink"><input v-model="field.required" type="checkbox" class="h-5 w-5" /> Obligatoire</label>
       </article>
     </section>
@@ -81,7 +80,7 @@ function normalizeQuestionOptions(question: CustomQuestionConfig) {
           <span class="rounded-full bg-brand-100 px-2 py-0.5 text-xs font-black text-brand-700">{{ config.customQuestions.length }}</span>
         </button>
         <button class="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand-700 px-5 font-black text-white shadow-sm transition hover:-translate-y-0.5 hover:bg-brand-600 hover:shadow-lg focus:outline-none focus:ring-4 focus:ring-brand-100" type="button" @click="addCustomQuestion">
-          <Plus :size="18" /> Ajouter
+          <Plus :size="18" /> Ajouter une question
         </button>
       </div>
 
@@ -104,15 +103,12 @@ function normalizeQuestionOptions(question: CustomQuestionConfig) {
               <span class="pointer-events-none absolute bottom-full right-0 mb-2 hidden whitespace-nowrap rounded-lg bg-ink px-3 py-1 text-xs font-bold text-white shadow-lg group-hover:block">Supprimer</span>
             </button>
           </div>
-          <input v-model="question.placeholder" placeholder="Texte indicatif" class="h-11 rounded-xl border border-slate-300 px-3 font-semibold outline-none focus:border-brand-700" />
+          <input v-model="question.placeholder" placeholder="Texte d'aide" class="h-11 rounded-xl border border-slate-300 px-3 font-semibold outline-none focus:border-brand-700" />
           <input v-if="question.type === 'select'" :value="(question.options || []).join(', ')" placeholder="Options séparées par des virgules" class="h-11 rounded-xl border border-slate-300 px-3 font-semibold outline-none focus:border-brand-700" @input="question.options = ($event.target as HTMLInputElement).value.split(',').map((item) => item.trim()).filter(Boolean)" />
         </article>
 
         <div v-if="!config.customQuestions.length" class="rounded-2xl border border-dashed border-slate-300 bg-white p-6 text-center">
           <p class="font-bold text-slate-500">Aucune question personnalisée.</p>
-          <button class="mt-3 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-brand-700 px-5 font-black text-white transition hover:bg-brand-600" type="button" @click="addCustomQuestion">
-            <Plus :size="18" /> Ajouter une question
-          </button>
         </div>
       </div>
     </section>

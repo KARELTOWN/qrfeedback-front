@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue';
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import { RouterLink } from 'vue-router';
-import { BarChart3, CheckCircle2, Code2, Copy, Download, Eye, Mail, MessageSquareText, Pencil, Plus, Power, QrCode, Send, Star, XCircle } from 'lucide-vue-next';
+import { BarChart3, CheckCircle2, Code2, Copy, Download, Eye, Mail, MessageSquareText, MoreHorizontal, Pencil, Plus, Power, QrCode, Send, Star, XCircle } from 'lucide-vue-next';
 import BasePagination from '../../components/shared/BasePagination.vue';
 import { useDashboard, type CompanyQrCode, type NotificationPreferences, type PaginationMeta, type Review } from '../../composables/useDashboard';
 import { useToast } from '../../composables/useToast';
@@ -20,6 +20,7 @@ const qrMessage = ref('');
 const selectedQr = ref<CompanyQrCode | null>(null);
 const selectedQrReviews = ref<Review[]>([]);
 const selectedQrReviewsLoading = ref(false);
+const openActionsQrId = ref('');
 const qrCodeTotalPages = computed(() => qrCodePagination.value.totalPages);
 
 const totalReviews = computed(() => qrCodes.value.reduce((sum, qr) => sum + (qr.reviewCount || 0), 0));
@@ -89,8 +90,9 @@ function startEdit(qr: CompanyQrCode) {
   editingLabel.value = qr.label || '';
 }
 
-async function saveEdit(qr: CompanyQrCode) {
-  const updated = await updateQrCode(qr._id, { label: editingLabel.value || undefined });
+async function saveEditForCurrentQr() {
+  if (!editingQrId.value) return;
+  const updated = await updateQrCode(editingQrId.value, { label: editingLabel.value || undefined });
   qrCodes.value = qrCodes.value.map((item) => item._id === updated._id ? { ...item, label: updated.label } : item);
   if (selectedQr.value?._id === updated._id) selectedQr.value = { ...selectedQr.value, label: updated.label };
   editingQrId.value = '';
@@ -149,7 +151,20 @@ async function openQrDetail(qr: CompanyQrCode) {
   }
 }
 
+function toggleActionsMenu(qrId: string) {
+  openActionsQrId.value = openActionsQrId.value === qrId ? '' : qrId;
+}
+function closeActionsMenu() {
+  openActionsQrId.value = '';
+}
+function runAction(action: () => void) {
+  action();
+  closeActionsMenu();
+}
+
 onMounted(loadQrCodes);
+onMounted(() => document.addEventListener('click', closeActionsMenu));
+onBeforeUnmount(() => document.removeEventListener('click', closeActionsMenu));
 </script>
 
 <template>
@@ -228,11 +243,6 @@ onMounted(loadQrCodes);
           </div>
         </div>
 
-        <div v-if="editingQrId === qr._id" class="mt-4 flex gap-2">
-          <input v-model="editingLabel" class="h-11 min-w-0 flex-1 rounded-xl border border-slate-300 px-3 font-bold outline-none focus:border-brand-700" />
-          <button class="h-11 rounded-xl bg-brand-700 px-4 font-black text-white" @click="saveEdit(qr)">OK</button>
-        </div>
-
         <div class="mt-4 grid gap-2 sm:grid-cols-2">
           <button class="inline-flex h-10 items-center justify-center gap-2 rounded-xl px-3 text-sm font-black transition" :class="qrNotifications(qr).telegramEnabled ? 'bg-brand-50 text-brand-700' : 'bg-slate-100 text-slate-500'" type="button" @click="toggleQrCodeNotification(qr, 'telegramEnabled')">
             <Send :size="16" />
@@ -244,22 +254,31 @@ onMounted(loadQrCodes);
           </button>
         </div>
 
-        <div class="mt-4 flex flex-wrap gap-2">
-          <button class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 font-black text-ink transition hover:bg-slate-50" @click="openQrDetail(qr)">
-            <Eye :size="16" />
-            Détail
+        <div class="mt-4 flex gap-2">
+          <button class="inline-flex h-10 shrink-0 items-center justify-center rounded-xl bg-brand-700 px-4 font-black text-white transition hover:bg-brand-600" @click="openQrDetail(qr)">Détail</button>
+          <button class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 px-4 font-black text-ink transition hover:bg-slate-50" @click.stop="toggleActionsMenu(qr._id)">
+            <MoreHorizontal :size="16" />
+            Action
           </button>
-          <RouterLink class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 px-3 font-black text-ink transition hover:bg-slate-50" :to="{ path: '/ai', query: { qrCodeId: qr._id } }">
-            <BarChart3 :size="16" />
-            Analyse
-          </RouterLink>
-          <button class="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 text-ink transition hover:bg-slate-50" title="Modifier le libellé" aria-label="Modifier le libellé" @click="startEdit(qr)"><Pencil :size="16" /></button>
-          <button class="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 text-ink transition hover:bg-slate-50" title="Activer ou désactiver" aria-label="Activer ou désactiver" @click="toggleActive(qr)"><Power :size="16" /></button>
-          <button class="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 text-ink transition hover:bg-slate-50" title="Copier le lien" aria-label="Copier le lien" @click="copyText(qr.feedbackUrl)"><Copy :size="16" /></button>
-          <button class="grid h-10 w-10 place-items-center rounded-xl border border-slate-200 text-ink transition hover:bg-slate-50" title="Copier le script" aria-label="Copier le script" @click="copyWidgetScript(qr)"><Code2 :size="16" /></button>
-          <button class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-brand-700 px-3 font-black text-white transition hover:bg-brand-600" title="Télécharger PNG" @click="downloadQrCode(qr, 'png')"><Download :size="16" /> PNG</button>
-          <button class="h-10 rounded-xl bg-slate-900 px-3 text-sm font-black text-white transition hover:bg-black" title="Télécharger PDF" @click="downloadQrCode(qr, 'pdf')">PDF</button>
         </div>
+
+        <Teleport to="body">
+          <div v-if="openActionsQrId === qr._id" class="fixed inset-0 z-50 grid place-items-end bg-black/40 sm:place-items-center" @click.self="closeActionsMenu">
+            <div class="max-h-[80vh] w-full overflow-y-auto rounded-t-3xl bg-white p-2 shadow-2xl sm:max-w-sm sm:rounded-3xl sm:p-2">
+              <p class="px-3 py-2.5 text-xs font-black uppercase tracking-wide text-slate-400">{{ qr.label || 'QR Code' }}</p>
+              <button class="flex w-full items-center gap-2.5 rounded-xl px-3 py-3 text-left font-bold text-ink transition hover:bg-slate-50" @click="runAction(() => openQrDetail(qr))"><Eye :size="16" /> Détail</button>
+              <RouterLink class="flex w-full items-center gap-2.5 rounded-xl px-3 py-3 text-left font-bold text-ink transition hover:bg-slate-50" :to="{ path: '/ai', query: { qrCodeId: qr._id } }" @click="closeActionsMenu"><BarChart3 :size="16" /> Analyse</RouterLink>
+              <button class="flex w-full items-center gap-2.5 rounded-xl px-3 py-3 text-left font-bold text-ink transition hover:bg-slate-50" @click="runAction(() => startEdit(qr))"><Pencil :size="16" /> Modifier le nom du QR code</button>
+              <button class="flex w-full items-center gap-2.5 rounded-xl px-3 py-3 text-left font-bold text-ink transition hover:bg-slate-50" @click="runAction(() => toggleActive(qr))"><Power :size="16" /> Activer / désactiver</button>
+              <button class="flex w-full items-center gap-2.5 rounded-xl px-3 py-3 text-left font-bold text-ink transition hover:bg-slate-50" @click="runAction(() => copyText(qr.feedbackUrl))"><Copy :size="16" /> Copier le lien</button>
+              <button class="flex w-full items-center gap-2.5 rounded-xl px-3 py-3 text-left font-bold text-ink transition hover:bg-slate-50" @click="runAction(() => copyWidgetScript(qr))"><Code2 :size="16" /> Copier le script</button>
+              <div class="my-1 border-t border-slate-100"></div>
+              <button class="flex w-full items-center gap-2.5 rounded-xl px-3 py-3 text-left font-bold text-ink transition hover:bg-slate-50" @click="runAction(() => downloadQrCode(qr, 'png'))"><Download :size="16" /> Télécharger PNG</button>
+              <button class="flex w-full items-center gap-2.5 rounded-xl px-3 py-3 text-left font-bold text-ink transition hover:bg-slate-50" @click="runAction(() => downloadQrCode(qr, 'pdf'))"><Download :size="16" /> Télécharger PDF</button>
+              <button class="mt-1 flex w-full items-center justify-center rounded-xl bg-slate-100 px-3 py-3 text-center font-black text-slate-600 transition hover:bg-slate-200" @click="closeActionsMenu">Fermer</button>
+            </div>
+          </div>
+        </Teleport>
       </article>
 
       <div v-if="!qrCodes.length" class="rounded-3xl border border-dashed border-slate-300 bg-white p-10 text-center">
@@ -269,6 +288,20 @@ onMounted(loadQrCodes);
     </div>
 
     <BasePagination :pagination="qrCodePagination" :page="qrCodePage" label="QR Code au total" @page-change="goQrCodePage" />
+
+    <div v-if="editingQrId" class="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4" @click.self="editingQrId = ''">
+      <div class="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl">
+        <h3 class="text-xl font-black text-ink">Modifier le nom du QR code</h3>
+        <label class="mt-4 block">
+          <span class="mb-2 block font-black text-ink">Nom</span>
+          <input v-model="editingLabel" class="h-12 w-full rounded-xl border border-slate-300 px-4 font-bold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" placeholder="Caisse, table 1, agence..." @keyup.enter="saveEditForCurrentQr" />
+        </label>
+        <div class="mt-5 flex justify-end gap-3">
+          <button class="h-11 rounded-xl border border-slate-300 px-4 font-black text-ink" @click="editingQrId = ''">Annuler</button>
+          <button class="h-11 rounded-xl bg-brand-700 px-5 font-black text-white" @click="saveEditForCurrentQr">Enregistrer</button>
+        </div>
+      </div>
+    </div>
 
     <div v-if="selectedQr" class="fixed inset-0 z-50 grid place-items-center bg-black/40 px-4" @click.self="selectedQr = null">
       <div class="max-h-[90vh] w-full max-w-5xl overflow-y-auto rounded-3xl bg-white p-6 shadow-2xl">
@@ -281,7 +314,7 @@ onMounted(loadQrCodes);
             <h2 class="text-2xl font-black text-ink">{{ selectedQr.label || 'QR Code' }}</h2>
             <p class="mt-1 break-all text-sm font-bold text-slate-500">{{ selectedQr.feedbackUrl }}</p>
           </div>
-          <button class="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-ink" aria-label="Fermer" @click="selectedQr = null"><XCircle :size="18" /></button>
+          <button class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-brand-700 text-white transition hover:bg-brand-600" aria-label="Fermer" @click="selectedQr = null"><XCircle :size="18" /></button>
         </div>
 
         <div class="grid gap-5 lg:grid-cols-[220px_1fr]">
