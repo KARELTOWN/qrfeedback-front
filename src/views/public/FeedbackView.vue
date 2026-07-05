@@ -266,98 +266,98 @@ async function submit() {
 </script>
 
 <template>
-  <main class="min-h-screen bg-[#eef6f8] px-4 py-6 sm:py-10" :class="isEmbed ? 'bg-white px-0 py-0' : ''">
-    <section class="mx-auto grid max-w-6xl overflow-hidden rounded-[2rem] bg-white shadow-2xl shadow-slate-200/80 lg:grid-cols-[0.85fr_1.15fr]" :class="isEmbed ? 'max-w-none rounded-none shadow-none lg:block' : ''">
-      <aside v-if="!isEmbed" class="relative min-h-56 bg-gradient-to-br from-teal-700 via-emerald-700 to-cyan-700 p-7 text-white sm:p-10" :class="sent ? 'xl:pr-16' : ''">
+  <main class="min-h-screen bg-[#eef6f8] px-4 py-4 sm:py-6" :class="isEmbed ? 'bg-white px-0 py-0' : ''">
+    <section class="mx-auto grid max-w-5xl overflow-hidden rounded-[1.5rem] bg-white shadow-2xl shadow-slate-200/80 lg:grid-cols-[0.8fr_1.2fr]" :class="isEmbed ? 'max-w-none rounded-none shadow-none lg:block' : ''">
+      <aside v-if="!isEmbed" class="relative min-h-32 bg-gradient-to-br from-teal-700 via-emerald-700 to-cyan-700 p-5 text-white sm:p-6" :class="sent ? 'xl:pr-14' : ''">
         <div class="relative z-10">
-          <span v-if="!isEmbed" class="grid h-14 w-14 place-items-center rounded-2xl bg-white/15"><MessageSquareText :size="28" /></span>
-          <p v-if="!isEmbed" class="mt-8 text-sm font-black uppercase tracking-wide text-emerald-100">{{ company?.name || 'Opinbase' }}</p>
-          <h1 class="mt-3 max-w-md text-4xl font-black leading-tight sm:text-5xl lg:text-4xl xl:text-5xl" :class="isEmbed ? 'mt-0 text-xl leading-tight sm:text-2xl' : ''">{{ formConfig?.welcomeTitle || "Un avis aujourd’hui, une meilleure expérience demain." }}</h1>
+          <span v-if="!isEmbed" class="grid h-10 w-10 place-items-center rounded-xl bg-white/15"><MessageSquareText :size="20" /></span>
+          <p v-if="!isEmbed" class="mt-4 text-xs font-black uppercase tracking-wide text-emerald-100">{{ company?.name || 'Opinbase' }}</p>
+          <h1 class="mt-2 max-w-md text-2xl font-black leading-tight sm:text-3xl lg:text-2xl xl:text-3xl" :class="isEmbed ? 'mt-0 text-xl leading-tight sm:text-2xl' : ''">{{ formConfig?.welcomeTitle || "Un avis aujourd’hui, une meilleure expérience demain." }}</h1>
         </div>
-        <div v-if="!sent" class="absolute bottom-6 right-6 hidden max-w-52 rounded-3xl bg-white/12 p-5 backdrop-blur xl:block">
-          <Star class="text-amber-200" :size="36" />
-          <p class="mt-3 max-w-52 font-bold text-white/90">{{ formConfig?.welcomeMessage || "Votre partage d'expérience nous aide à mieux vous servir." }}</p>
+        <div v-if="!sent" class="absolute bottom-4 right-4 hidden max-w-44 rounded-2xl bg-white/12 p-4 backdrop-blur xl:block">
+          <Star class="text-amber-200" :size="26" />
+          <p class="mt-2 max-w-44 text-sm font-bold text-white/90">{{ formConfig?.welcomeMessage || "Votre partage d'expérience nous aide à mieux vous servir." }}</p>
         </div>
       </aside>
 
-      <div v-if="loadingCompany" class="grid place-items-center p-8 text-center sm:p-12">
+      <div v-if="loadingCompany" class="grid place-items-center p-6 text-center sm:p-8">
         <p class="font-bold text-slate-400">Chargement...</p>
       </div>
 
-      <div v-else-if="notFound" class="grid place-items-center p-8 text-center sm:p-12">
+      <div v-else-if="notFound" class="grid place-items-center p-6 text-center sm:p-8">
         <div class="max-w-md">
-          <span class="mx-auto grid h-20 w-20 place-items-center rounded-full bg-slate-100 text-slate-500"><MessageSquareText :size="42" /></span>
-          <h1 class="mt-6 text-3xl font-black text-ink">Ce lien n'est plus disponible.</h1>
-          <p class="mt-3 text-lg font-semibold leading-8 text-slate-500">Ce QR code a été désactivé ou n'existe pas. Vous ne pouvez plus laisser d'avis via ce lien.</p>
+          <span class="mx-auto grid h-14 w-14 place-items-center rounded-full bg-slate-100 text-slate-500"><MessageSquareText :size="30" /></span>
+          <h1 class="mt-4 text-2xl font-black text-ink">Ce lien n'est plus disponible.</h1>
+          <p class="mt-2 font-semibold leading-6 text-slate-500">Ce QR code a été désactivé ou n'existe pas. Vous ne pouvez plus laisser d'avis via ce lien.</p>
         </div>
       </div>
 
-      <form v-else-if="!sent" class="grid gap-6 p-5 sm:p-8 lg:p-10" :class="isEmbed ? 'gap-4 p-5 sm:p-6' : ''" @submit.prevent="submit">
+      <form v-else-if="!sent" class="grid gap-4 p-4 sm:p-6 lg:p-7" :class="isEmbed ? 'gap-3 p-4 sm:p-5' : ''" @submit.prevent="submit">
         <div>
-          <h2 class="text-3xl font-black text-ink" :class="isEmbed ? 'text-2xl' : ''">{{ formConfig?.title || 'Comment s’est passée votre expérience ?' }}</h2>
-          <p class="mt-2 font-semibold text-slate-500" :class="isEmbed ? 'text-sm' : ''">Nous lirons votre retour avec attention.</p>
+          <h2 class="text-xl font-black text-ink" :class="isEmbed ? 'text-lg' : ''">{{ formConfig?.title || 'Comment s’est passée votre expérience ?' }}</h2>
+          <p class="mt-1 text-sm font-semibold text-slate-500">Nous lirons votre retour avec attention.</p>
         </div>
 
-        <section class="rounded-3xl border border-slate-200 bg-slate-50 p-4 sm:p-5">
-          <div class="flex flex-wrap items-center justify-between gap-3">
+        <section class="rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:p-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
             <span class="font-black text-ink">Votre note *</span>
           </div>
-          <div class="mt-4 grid grid-cols-5 gap-2 sm:gap-3">
-            <button v-for="option in ratingOptions" :key="option.value" type="button" class="grid aspect-square min-h-14 place-items-center rounded-2xl border text-ink transition hover:-translate-y-0.5" :class="form.rating === option.value ? 'border-amber-300 bg-amber-100 shadow-md shadow-amber-100' : 'border-white bg-white hover:border-slate-200'" @click="form.rating = option.value">
-              <component :is="option.icon" :size="28" :fill="option.value === 5 && form.rating === option.value ? 'currentColor' : 'none'" />
+          <div class="mt-3 flex justify-center gap-2 sm:gap-2.5">
+            <button v-for="option in ratingOptions" :key="option.value" type="button" class="grid h-9 w-9 place-items-center rounded-lg border text-ink shadow-sm transition hover:-translate-y-0.5 sm:h-10 sm:w-10" :class="form.rating === option.value ? 'border-amber-300 bg-amber-100 shadow-amber-100' : 'border-slate-200 bg-white hover:border-slate-300'" @click="form.rating = option.value">
+              <component :is="option.icon" :size="17" :fill="option.value === 5 && form.rating === option.value ? 'currentColor' : 'none'" />
             </button>
           </div>
-          <div class="mt-3 flex justify-between text-sm font-black text-slate-500"><span>Déçu</span><span>Enchanté</span></div>
+          <div class="mt-2 flex justify-between text-xs font-black text-slate-500"><span>Déçu</span><span>Enchanté</span></div>
         </section>
 
         <label v-if="fieldConfig('serviceFeedback')" class="block">
-          <span class="mb-2 block font-extrabold text-ink">{{ fieldConfig('serviceFeedback')?.label }} <span v-if="isFieldRequired('serviceFeedback')" class="text-red-600">*</span></span>
-          <textarea v-model="form.serviceFeedback" :required="isFieldRequired('serviceFeedback')" :placeholder="fieldConfig('serviceFeedback')?.placeholder || 'Dites-nous ce qui vous a marqué...'" rows="4" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 font-semibold outline-none transition focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
+          <span class="mb-1.5 block font-extrabold text-ink">{{ fieldConfig('serviceFeedback')?.label }} <span v-if="isFieldRequired('serviceFeedback')" class="text-red-600">*</span></span>
+          <textarea v-model="form.serviceFeedback" :required="isFieldRequired('serviceFeedback')" :placeholder="fieldConfig('serviceFeedback')?.placeholder || 'Dites-nous ce qui vous a marqué...'" rows="3" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 font-semibold outline-none transition focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
         </label>
 
-        <div class="grid gap-5">
+        <div class="grid gap-3">
           <label v-for="question in formConfig?.customQuestions || []" :key="question.id" class="block">
-            <span class="mb-2 block font-extrabold text-ink">{{ question.label }} <span v-if="question.required" class="text-red-600">*</span></span>
-            <input v-if="question.type === 'text'" v-model="customAnswer(question).value" :required="question.required" :placeholder="question.placeholder" class="h-13 w-full rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
-            <input v-else-if="question.type === 'fullName'" v-model.trim="customAnswer(question).value" :required="question.required" autocomplete="name" :placeholder="question.placeholder || 'Votre nom et prénoms'" class="h-13 w-full rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
-            <textarea v-else-if="question.type === 'textarea'" v-model="customAnswer(question).value" :required="question.required" :placeholder="question.placeholder" rows="3" class="w-full rounded-2xl border border-slate-200 px-4 py-3 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
-            <input v-else-if="question.type === 'email'" v-model.trim="customAnswer(question).value" type="email" autocomplete="email" :required="question.required" :placeholder="question.placeholder || 'contact@entreprise.com'" class="h-13 w-full rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
-            <div v-else-if="question.type === 'phone'" class="grid gap-3 sm:grid-cols-[150px_1fr]">
+            <span class="mb-1.5 block font-extrabold text-ink">{{ question.label }} <span v-if="question.required" class="text-red-600">*</span></span>
+            <input v-if="question.type === 'text'" v-model="customAnswer(question).value" :required="question.required" :placeholder="question.placeholder" class="h-11 w-full rounded-xl border border-slate-200 px-3.5 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
+            <input v-else-if="question.type === 'fullName'" v-model.trim="customAnswer(question).value" :required="question.required" autocomplete="name" :placeholder="question.placeholder || 'Votre nom et prénoms'" class="h-11 w-full rounded-xl border border-slate-200 px-3.5 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
+            <textarea v-else-if="question.type === 'textarea'" v-model="customAnswer(question).value" :required="question.required" :placeholder="question.placeholder" rows="2" class="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
+            <input v-else-if="question.type === 'email'" v-model.trim="customAnswer(question).value" type="email" autocomplete="email" :required="question.required" :placeholder="question.placeholder || 'contact@entreprise.com'" class="h-11 w-full rounded-xl border border-slate-200 px-3.5 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
+            <div v-else-if="question.type === 'phone'" class="grid gap-2 sm:grid-cols-[140px_1fr]">
               <CountryDialSelect :model-value="customPhoneDialCodes[question.id] || '+229'" @update:model-value="updateCustomPhoneDial(question, $event)" />
-              <input :value="customPhoneLocalNumbers[question.id] || ''" :required="question.required" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" :placeholder="question.placeholder || '0199997478'" class="h-14 w-full rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" @input="updateCustomPhone(question, ($event.target as HTMLInputElement).value)" />
+              <input :value="customPhoneLocalNumbers[question.id] || ''" :required="question.required" inputmode="numeric" pattern="[0-9]*" autocomplete="tel" :placeholder="question.placeholder || '0199997478'" class="h-11 w-full rounded-xl border border-slate-200 px-3.5 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100" @input="updateCustomPhone(question, ($event.target as HTMLInputElement).value)" />
             </div>
-            <select v-else-if="question.type === 'select'" v-model="customAnswer(question).value" :required="question.required" class="h-13 w-full rounded-2xl border border-slate-200 px-4 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100">
+            <select v-else-if="question.type === 'select'" v-model="customAnswer(question).value" :required="question.required" class="h-11 w-full rounded-xl border border-slate-200 px-3.5 font-semibold outline-none focus:border-brand-700 focus:ring-4 focus:ring-brand-100">
               <option value="">Choisir une option</option>
               <option v-for="option in question.options || []" :key="option" :value="option">{{ option }}</option>
             </select>
-            <div v-else class="flex flex-wrap gap-2">
-              <button v-for="star in stars" :key="`${question.id}-${star}`" type="button" class="grid h-11 w-11 place-items-center rounded-xl border transition" :class="Number(customAnswer(question).value) >= star ? 'border-amber-300 bg-amber-50 text-amber-500' : 'border-slate-200 bg-white text-slate-300'" @click="customAnswer(question).value = star">
-                <Star :size="24" />
+            <div v-else class="flex flex-wrap gap-1.5">
+              <button v-for="star in stars" :key="`${question.id}-${star}`" type="button" class="grid h-9 w-9 place-items-center rounded-lg border transition" :class="Number(customAnswer(question).value) >= star ? 'border-amber-300 bg-amber-50 text-amber-500' : 'border-slate-200 bg-white text-slate-300'" @click="customAnswer(question).value = star">
+                <Star :size="20" />
               </button>
             </div>
           </label>
         </div>
 
-        <div v-if="turnstileSiteKey" class="rounded-2xl border border-slate-200 bg-white p-3">
+        <div v-if="turnstileSiteKey" class="rounded-xl border border-slate-200 bg-white p-2.5">
           <div ref="turnstileContainer"></div>
         </div>
 
-        <button class="inline-flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-brand-700 text-base font-black text-white transition hover:bg-brand-600 disabled:opacity-60" :disabled="loading || !form.rating">
-          <Send :size="19" /> {{ loading ? 'Envoi...' : 'Envoyer mon avis' }}
+        <button class="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-brand-700 text-base font-black text-white transition hover:bg-brand-600 disabled:opacity-60" :disabled="loading || !form.rating">
+          <Send :size="18" /> {{ loading ? 'Envoi...' : 'Envoyer mon avis' }}
         </button>
-        <p v-if="error" class="rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{{ error }}</p>
+        <p v-if="error" class="rounded-xl bg-red-50 px-4 py-2.5 text-sm font-bold text-red-700">{{ error }}</p>
       </form>
 
-      <div v-else-if="sent" class="grid place-items-center p-8 text-center sm:p-12">
+      <div v-else-if="sent" class="grid place-items-center p-6 text-center sm:p-8">
         <div class="max-w-md">
-          <span class="mx-auto grid h-20 w-20 place-items-center rounded-full bg-emerald-100 text-emerald-700"><CheckCircle2 :size="42" /></span>
-          <h1 class="mt-6 text-4xl font-black text-ink">Merci pour votre avis.</h1>
-          <p class="mt-3 text-lg font-semibold leading-8 text-slate-500">Votre retour a bien été transmis. Il aidera l’équipe à améliorer l’expérience des prochains clients.</p>
+          <span class="mx-auto grid h-16 w-16 place-items-center rounded-full bg-emerald-100 text-emerald-700"><CheckCircle2 :size="34" /></span>
+          <h1 class="mt-4 text-2xl font-black text-ink">Merci pour votre avis.</h1>
+          <p class="mt-2 font-semibold leading-6 text-slate-500">Votre retour a bien été transmis. Il aidera l’équipe à améliorer l’expérience des prochains clients.</p>
 
-          <div v-if="redirectUrl" class="mt-8 rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-5">
+          <div v-if="redirectUrl" class="mt-5 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-4">
             <p class="font-black text-emerald-800">Votre avis compte vraiment !</p>
             <p class="mt-1 text-sm font-semibold text-emerald-700">Vous allez être redirigé pour laisser un avis public dans <strong>{{ redirectCountdown }}s</strong>…</p>
-            <a :href="redirectUrl" class="mt-4 inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 font-black text-white transition hover:bg-emerald-600">
+            <a :href="redirectUrl" class="mt-3 inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 font-black text-white transition hover:bg-emerald-600">
               Laisser un avis public maintenant
             </a>
           </div>
