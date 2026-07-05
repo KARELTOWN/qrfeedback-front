@@ -37,7 +37,6 @@ const loadingCompany = ref(true);
 let redirectTimer: ReturnType<typeof setTimeout> | null = null;
 const customPhoneDialCodes = ref<Record<string, string>>({});
 const customPhoneLocalNumbers = ref<Record<string, string>>({});
-const rememberMe = ref(false);
 const rememberCookieName = 'qr_feedback_remember';
 const stars = computed(() => [1, 2, 3, 4, 5]);
 const formConfig = computed(() => company.value?.feedbackFormConfig);
@@ -213,12 +212,11 @@ function applyRememberedAnswers() {
       customPhoneDialCodes.value[question.id] = phone.dialCode;
       customPhoneLocalNumbers.value[question.id] = phone.localNumber;
     }
-    rememberMe.value = true;
   }
 }
 
 function saveRememberedAnswers() {
-  if (!rememberMe.value || !shouldShowRememberMe.value) return;
+  if (!shouldShowRememberMe.value) return;
   const nextValues = readRememberCookie();
   for (const question of rememberableQuestions.value) {
     const value = String(customAnswer(question).value || '').trim();
@@ -339,11 +337,6 @@ async function submit() {
             </div>
           </label>
         </div>
-
-        <label v-if="shouldShowRememberMe" class="flex items-start gap-3 rounded-2xl border border-brand-100 bg-brand-50 px-4 py-3 font-bold text-ink">
-          <input v-model="rememberMe" type="checkbox" class="mt-1 h-5 w-5 rounded border-slate-300 text-brand-700 focus:ring-brand-500" />
-          <span>Se souvenir de mes informations</span>
-        </label>
 
         <div v-if="turnstileSiteKey" class="rounded-2xl border border-slate-200 bg-white p-3">
           <div ref="turnstileContainer"></div>
