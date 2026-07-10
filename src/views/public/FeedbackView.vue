@@ -312,7 +312,7 @@ async function submit() {
 
         <label v-if="fieldConfig('serviceFeedback')" class="block">
           <span class="mb-1.5 block font-extrabold text-ink">{{ fieldConfig('serviceFeedback')?.label }} <span v-if="isFieldRequired('serviceFeedback')" class="text-red-600">*</span></span>
-          <textarea v-model="form.serviceFeedback" :required="isFieldRequired('serviceFeedback')" :placeholder="fieldConfig('serviceFeedback')?.placeholder || 'Dites-nous ce qui vous a marqué...'" rows="3" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 font-semibold outline-none transition focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
+          <textarea v-model="form.serviceFeedback" :required="isFieldRequired('serviceFeedback')" :placeholder="fieldConfig('serviceFeedback')?.placeholder" rows="3" class="w-full rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 font-semibold outline-none transition focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
         </label>
 
         <div class="grid gap-3">
