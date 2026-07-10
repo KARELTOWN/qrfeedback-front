@@ -284,7 +284,7 @@ onBeforeUnmount(() => {
           </label>
           <label class="block">
             <span class="mb-2 block text-base font-extrabold text-ink">Email</span>
-            <input v-model="form.email" required type="email" placeholder="contact@entreprise.com" class="h-14 w-full rounded-xl border border-slate-300 bg-white px-4 text-base font-semibold text-ink outline-none transition focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
+            <input v-model="form.email" required type="email" class="h-14 w-full rounded-xl border border-slate-300 bg-white px-4 text-base font-semibold text-ink outline-none transition focus:border-brand-700 focus:ring-4 focus:ring-brand-100" />
           </label>
           <div v-if="turnstileSiteKey" class="min-h-[65px]">
             <div ref="turnstileContainer"></div>
